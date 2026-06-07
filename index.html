@@ -1,0 +1,2465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>HSK 3 · Flashcards</title>
+<style>
+  :root{
+    color-scheme:light;
+    --paper:#efe7d6;--paper-2:#f6f0e3;--card:#fbf7ec;--ink:#241f18;--ink-soft:#5a5042;--muted:#938671;
+    --line:#ddd0b8;--cinnabar:#c0402a;--cinnabar-2:#9c3221;--cinnabar-tint:#f1d9d0;--gold:#b08646;
+    --shadow:0 22px 50px -28px rgba(40,28,16,.55),0 6px 18px -10px rgba(40,28,16,.3);
+    --display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --han:"PingFang SC","Hiragino Sans GB","Heiti SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+    --pinyin:Georgia,Palatino,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{min-height:100%}
+  body{font-family:var(--display);color:var(--ink);
+    background:radial-gradient(120% 80% at 50% -10%, var(--paper-2), var(--paper) 60%),var(--paper);
+    background-attachment:fixed;display:flex;justify-content:center;
+    padding:max(14px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom));}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:radial-gradient(rgba(90,70,40,.05) 1px,transparent 1px);background-size:4px 4px;opacity:.6;mix-blend-mode:multiply;}
+  .wrap{width:100%;max-width:560px;position:relative;z-index:1;display:flex;flex-direction:column;gap:14px}
+
+  header{display:flex;align-items:flex-start;gap:13px;animation:rise .5s both}
+  .tab{flex:0 0 auto;width:7px;align-self:stretch;min-height:46px;border-radius:4px;background:linear-gradient(var(--cinnabar),var(--cinnabar-2))}
+  .titles{display:flex;flex-direction:column;gap:2px}
+  .kicker{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--cinnabar-2);font-weight:600}
+  h1{font-family:var(--han);font-size:1.4rem;font-weight:600;line-height:1.1;letter-spacing:.02em}
+  .sub{font-style:italic;color:var(--ink-soft);font-size:.9rem;margin-top:1px}
+
+  .dash{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+    padding:16px 18px;display:flex;flex-direction:column;gap:10px;animation:rise .5s .05s both}
+  .dash .row{display:flex;align-items:baseline;justify-content:space-between}
+  .dash h2{font-family:var(--display);font-size:1rem;font-weight:600;color:var(--ink)}
+  .ovpct{font-family:var(--display);font-size:2rem;font-weight:600;color:var(--cinnabar-2);line-height:1}
+  .ovbar{height:7px;border-radius:99px;background:var(--line);overflow:hidden}
+  .ovbar > i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--cinnabar));transition:width .5s ease}
+  .ovsub{font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  .list{display:flex;flex-direction:column;gap:9px;animation:rise .5s .12s both}
+  .lrow{position:relative;overflow:hidden;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:13px;
+    background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 15px 14px;
+    cursor:pointer;transition:.16s;text-align:left;font-family:var(--display);color:var(--ink);width:100%}
+  .lrow:hover{border-color:var(--cinnabar)}
+  .lrow:active{transform:scale(.995)}
+  .lrow.locked{opacity:.5;cursor:default;background:transparent}
+  .lrow.locked:hover{border-color:var(--line)}
+  .lbadge{width:38px;height:38px;border-radius:11px;background:var(--cinnabar-tint);color:var(--cinnabar-2);
+    font-family:var(--display);font-weight:600;font-size:1.05rem;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .lrow.locked .lbadge{background:var(--line);color:var(--muted)}
+  .ltext{min-width:0}
+  .lcn{font-family:var(--han);font-size:1.04rem;font-weight:600;line-height:1.25;color:var(--ink)}
+  .len{font-size:.76rem;color:var(--muted);line-height:1.3;margin-top:1px}
+  .lright{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+  .lpct{font-size:.82rem;font-weight:600;color:var(--cinnabar-2);font-variant-numeric:tabular-nums}
+  .lchev{color:var(--muted);font-size:1.3rem;line-height:1}
+  .lsoon{font-size:.72rem;color:var(--muted);font-style:italic}
+  .lprog{position:absolute;left:0;right:0;bottom:0;height:3px;background:transparent}
+  .lprog > i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--cinnabar))}
+  .resetAll{align-self:center;background:none;border:0;color:var(--muted);font-family:var(--display);font-size:.74rem;cursor:pointer;text-decoration:underline}
+
+  /* ===== STUDY: focused full-viewport space ===== */
+  #study{position:fixed;inset:0;z-index:20;display:flex;justify-content:center;
+    padding:max(10px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));height:100vh;height:100dvh}
+  #study[hidden]{display:none}
+  .sInner{position:relative;width:100%;max-width:560px;height:100%;display:flex;flex-direction:column;gap:9px;min-height:0}
+  .shead{display:flex;align-items:center;gap:10px;flex:0 0 auto;direction:ltr;unicode-bidi:isolate}
+  .iconbtn{flex:0 0 auto;width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--card);
+    color:var(--cinnabar-2);font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.16s;line-height:1;padding:0}
+  .iconbtn:hover{border-color:var(--cinnabar)}
+  .stitle{flex:1;min-width:0;font-family:var(--han);font-size:1.02rem;color:var(--ink);line-height:1.2;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:ltr;text-align:left}
+  .stitle b{color:var(--cinnabar-2);font-family:var(--display);margin-right:5px}
+  .opts{position:absolute;top:50px;left:0;right:0;z-index:30;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;box-shadow:var(--shadow);padding:13px 15px;display:flex;flex-direction:column;gap:12px}
+  .opts[hidden]{display:none}
+  .optrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .optrow > span{font-size:.82rem;color:var(--ink-soft);font-weight:600}
+
+  .cats{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;flex:0 0 auto}
+  .cats::-webkit-scrollbar{display:none}
+  .pill{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);font-family:var(--display);
+    font-size:.82rem;font-weight:600;padding:7px 12px;border-radius:999px;cursor:pointer;transition:.18s;white-space:nowrap;display:flex;align-items:center;gap:5px}
+  .pill .n{font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .pill:hover{border-color:var(--cinnabar);color:var(--ink)}
+  .pill.on{background:linear-gradient(var(--cinnabar),var(--cinnabar-2));color:#fdf6ec;border-color:transparent}
+  .pill.on .n{color:rgba(253,246,236,.75)}
+
+  .midrow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:0 0 auto}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
+  .seg button{font-family:var(--display);border:0;background:transparent;color:var(--ink-soft);font-size:.78rem;font-weight:600;padding:6px 11px;cursor:pointer;transition:.16s}
+  .seg button.on{background:var(--ink);color:var(--paper-2)}
+  .seg[hidden]{display:none}
+  .counts{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .counts b{color:var(--ink-soft);font-weight:600}
+  .gbtn{font-family:var(--display);font-size:.8rem;font-weight:600;color:var(--cinnabar-2);background:transparent;
+    border:1px solid var(--cinnabar-tint);padding:7px 12px;border-radius:999px;cursor:pointer;transition:.16s}
+  .gbtn:hover{background:var(--cinnabar-tint)}
+  .gbtn.on{background:var(--ink);color:var(--paper-2);border-color:var(--ink)}
+
+  .bar{height:5px;border-radius:99px;background:var(--line);overflow:hidden;flex:0 0 auto}
+  .bar > i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--cinnabar));transition:width .4s ease}
+
+  .stage{position:relative;flex:1 1 auto;min-height:0;perspective:1700px}
+  .watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--han);
+    font-size:clamp(160px,46vw,280px);color:var(--cinnabar);opacity:.05;pointer-events:none;user-select:none;z-index:0;line-height:1}
+  .card{position:relative;z-index:1;width:100%;height:100%;transform-style:preserve-3d;
+    transition:transform .55s cubic-bezier(.2,.75,.2,1);cursor:pointer}
+  .card.flip{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;color:var(--ink);backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 24px;overflow:auto}
+  .face::before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--cinnabar),var(--gold))}
+  .back{transform:rotateY(180deg)}
+  .badge{position:absolute;top:14px;right:14px;font-family:var(--display);font-size:.66rem;font-weight:600;letter-spacing:.06em;
+    color:var(--cinnabar-2);background:var(--cinnabar-tint);padding:3px 9px;border-radius:999px}
+  .flag{position:absolute;top:14px;left:16px;right:16px;font-family:var(--display);font-size:.68rem;font-weight:600;
+    color:var(--muted);letter-spacing:.08em;text-transform:uppercase;text-align:left}
+  .hanzi{font-family:var(--han);font-weight:600;line-height:1.12;letter-spacing:.01em;color:var(--ink)}
+  .lg{font-size:clamp(2.8rem,14vw,5rem)}
+  .md{font-size:clamp(1.9rem,8vw,2.9rem)}
+  .pinyin{font-family:var(--pinyin);font-style:italic;color:var(--cinnabar-2);font-size:1.4rem;margin-top:4px}
+  .gloss{color:var(--ink);font-size:1.16rem;line-height:1.4;max-width:24ch}
+  .en{color:var(--ink);font-size:1.12rem;line-height:1.45;max-width:27ch}
+  .note{color:var(--muted);font-size:.86rem;font-style:italic;margin-top:11px;max-width:26ch}
+  .prompt{color:var(--ink-soft);font-size:1.12rem;line-height:1.5;max-width:26ch}
+  .prompt .q{font-family:var(--han);font-style:normal;color:var(--ink);font-size:1.34rem;display:block;margin-bottom:10px;line-height:1.3}
+  .hint{color:var(--muted);font-size:.8rem;margin-top:16px;letter-spacing:.04em}
+  .ex{margin-top:13px;padding-top:12px;border-top:1px dashed var(--line);max-width:30ch;display:flex;flex-direction:column;gap:8px}
+  .exItem{line-height:1.4}
+  .exHan{font-family:var(--han);color:var(--ink);font-size:1.1rem;font-weight:600}
+  .exPy{font-family:var(--pinyin);font-style:italic;color:var(--cinnabar-2);font-size:.92rem;margin-left:8px}
+  .exEn{display:block;color:var(--ink-soft);font-size:.9rem;margin-top:1px}
+  .who{font-family:var(--han);font-size:.92rem;color:var(--cinnabar-2);font-weight:600;margin-bottom:14px;letter-spacing:.03em}
+  .line{font-family:var(--han);font-weight:600;color:var(--ink);font-size:clamp(1.45rem,6vw,2.05rem);line-height:1.5;max-width:15ch;letter-spacing:.01em}
+  .linePy{font-family:var(--pinyin);font-style:italic;color:var(--cinnabar-2);font-size:1.1rem;line-height:1.5;margin-top:11px;max-width:28ch}
+
+  .spk{position:absolute;z-index:3;right:14px;bottom:14px;width:50px;height:50px;border-radius:50%;
+    border:1px solid var(--line);background:var(--card);color:var(--cinnabar-2);font-size:1.3rem;cursor:pointer;
+    box-shadow:0 8px 18px -8px rgba(40,28,16,.55);transition:.15s;display:flex;align-items:center;justify-content:center}
+  .spk:hover{border-color:var(--cinnabar)}
+  .spk:active{transform:scale(.94)}
+  .spk.playing{background:var(--cinnabar);color:#fdf6ec;border-color:transparent}
+
+  .done{position:absolute;inset:0;z-index:4;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:28px;text-align:center}
+  .done.show{display:flex}
+  .done .seal{font-family:var(--han);font-size:3rem;color:var(--cinnabar);width:88px;height:88px;border:3px solid var(--cinnabar);
+    border-radius:16px;display:flex;align-items:center;justify-content:center;transform:rotate(-4deg)}
+  .done h2{font-family:var(--han);font-size:1.25rem;font-weight:600}
+  .done p{color:var(--ink-soft);font-style:italic;font-size:.92rem}
+
+  .actions{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:9px;flex:0 0 auto}
+  .act{font-family:var(--display);font-weight:600;border-radius:14px;padding:14px 10px;cursor:pointer;font-size:.95rem;
+    border:1px solid var(--line);background:var(--card);color:var(--ink-soft);transition:.16s;display:flex;align-items:center;justify-content:center;gap:7px}
+  .act:active{transform:translateY(1px)}
+  .again:hover{border-color:var(--cinnabar);color:var(--cinnabar-2)}
+  .flip{background:var(--ink);color:var(--paper-2);border-color:var(--ink)}
+  .flip:hover{background:#332c22}
+  .got{border-color:#7f9b6a;color:#4f6a3c}
+  .got:hover{background:#e7eedd}
+
+  footer{text-align:center;color:var(--muted);font-size:.76rem;letter-spacing:.03em;animation:rise .5s .3s both}
+  footer b{color:var(--ink-soft);font-weight:600}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="home">
+  <header>
+    <div class="tab"></div>
+    <div class="titles">
+      <div class="kicker">HSK 标准教程 3 · Flashcards</div>
+      <h1>课程总览 · Dashboard</h1>
+      <div class="sub">Tap a chapter to study — progress saves on this device</div>
+    </div>
+  </header>
+  <section class="dash">
+    <div class="row"><h2>Overall mastery</h2><div class="ovpct" id="ovPct">0%</div></div>
+    <div class="ovbar"><i id="ovBar"></i></div>
+    <div class="ovsub" id="ovSub">0 / 0 cards mastered</div>
+  </section>
+  <div class="list" id="list"></div>
+  <button class="resetAll" id="resetAll">reset all progress</button>
+  <footer>Lessons 6–8 live · more added over time · 汉→EN &amp; audio inside each</footer>
+</div>
+
+<div id="study" hidden>
+  <div class="sInner">
+    <div class="shead">
+      <button class="iconbtn" id="backBtn" aria-label="Back to chapters">&#8249;</button>
+      <div class="stitle" id="studyTitle"></div>
+      <button class="iconbtn" id="optsBtn" aria-label="Options">&#9881;</button>
+    </div>
+    <div class="opts" id="opts" hidden>
+      <div class="optrow"><span>Audio</span><div style="display:flex;gap:8px"><button class="gbtn" id="autoBtn">▶ Auto</button><button class="gbtn" id="slowBtn">🐢 Slow</button></div></div>
+      <div class="optrow"><span>Deck</span><div style="display:flex;gap:8px"><button class="gbtn" id="shuffleBtn">⤮ Shuffle</button><button class="gbtn" id="resetBtn">↺ Reset</button></div></div>
+    </div>
+    <nav class="cats" id="cats"></nav>
+    <div class="midrow">
+      <div class="seg" id="modeSeg"><button data-mode="cn" class="on">汉 → EN</button><button data-mode="en">EN → 汉</button></div>
+      <div class="counts"><b id="masterN">0</b> mastered · <b id="leftN">0</b> left</div>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="stage">
+      <div class="watermark" id="wm">汉</div>
+      <div class="card" id="card" role="button" tabindex="0" aria-label="Flashcard, tap to flip">
+        <div class="face front" id="front"></div>
+        <div class="face back" id="back"></div>
+      </div>
+      <div class="done" id="done">
+        <div class="seal">毕</div>
+        <h2 id="doneMsg">Round complete</h2>
+        <p>Keep going, or review what you've learned.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+          <button class="gbtn" id="studyAgainBtn">★ Unmastered</button>
+          <button class="gbtn" id="reviewAllBtn">↻ Review all</button>
+          <button class="gbtn" id="doneHomeBtn">&#8249; Chapters</button>
+        </div>
+      </div>
+      <button class="spk" id="spkBtn" aria-label="Play audio" title="Play audio (Chinese)">🔊</button>
+    </div>
+    <div class="actions">
+      <button class="act again" id="againBtn">✗ Again</button>
+      <button class="act flip" id="flipBtn">Flip</button>
+      <button class="act got" id="gotBtn">✓ Got it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LESSONS = [
+{num:1,cn:"周末你有什么打算",en:"What's your plan for the weekend",wm:"算",active:true,newWords:[
+  {h:"周末",p:"zhōumò",m:"weekend"},
+  {h:"打算",p:"dǎsuàn",m:"plan; to intend"},
+  {h:"啊",p:"a",m:"(sentence-final particle: confirmation / mild emphasis)"},
+  {h:"跟",p:"gēn",m:"with"},
+  {h:"一直",p:"yìzhí",m:"all the time, continuously"},
+  {h:"游戏",p:"yóuxì",m:"game"},
+  {h:"作业",p:"zuòyè",m:"homework"},
+  {h:"着急",p:"zháojí",m:"worried, anxious"},
+  {h:"复习",p:"fùxí",m:"to review"},
+  {h:"南（方）",p:"nán(fāng)",m:"south, southern part"},
+  {h:"北方",p:"běifāng",m:"north, northern part"},
+  {h:"面包",p:"miànbāo",m:"bread"},
+  {h:"带",p:"dài",m:"to take along, bring"},
+  {h:"地图",p:"dìtú",m:"map"},
+  {h:"搬",p:"bān",m:"to move, carry"}
+],review:[
+  {h:"吃饭",p:"chī fàn",m:"to eat (a meal)"},
+  {h:"看电影",p:"kàn diànyǐng",m:"to see a movie"},
+  {h:"喝咖啡",p:"hē kāfēi",m:"to drink coffee"},
+  {h:"饭馆",p:"fànguǎn",m:"restaurant"},
+  {h:"电影票",p:"diànyǐngpiào",m:"movie ticket"},
+  {h:"想",p:"xiǎng",m:"to want; to think"},
+  {h:"考试",p:"kǎoshì",m:"exam, test"},
+  {h:"下个月",p:"xià ge yuè",m:"next month"},
+  {h:"一起",p:"yìqǐ",m:"together"},
+  {h:"觉得",p:"juéde",m:"to feel, think"},
+  {h:"最",p:"zuì",m:"most"},
+  {h:"好玩儿",p:"hǎowánr",m:"fun, enjoyable"},
+  {h:"去年",p:"qùnián",m:"last year"},
+  {h:"热",p:"rè",m:"hot"},
+  {h:"冷",p:"lěng",m:"cold"},
+  {h:"件",p:"jiàn",m:"(measure word for clothing)"},
+  {h:"衣服",p:"yīfu",m:"clothes"},
+  {h:"搬家",p:"bān jiā",m:"to move house"}
+],grammar:[
+  {q:"Resultative complement 好 — V + 好",
+   a:"V + 好 means the action is finished and properly done / ready.",
+   ex:[{h:"我早就想好了",p:"wǒ zǎo jiù xiǎnghǎo le",en:"I decided long ago"},
+       {h:"电影票也买好了",p:"diànyǐngpiào yě mǎihǎo le",en:"the movie tickets are bought too"}]},
+  {q:"早就 … 了 (zǎo jiù … le) — meaning?",
+   a:"早就 stresses that something happened long ago / already.",
+   ex:[{h:"我早就复习好了",p:"wǒ zǎo jiù fùxí hǎo le",en:"I finished reviewing long ago"},
+       {h:"他早就走了",p:"tā zǎo jiù zǒu le",en:"he left ages ago"}]},
+  {q:"一 + measure + 也/都 + 不/没 — what does it express?",
+   a:"Emphatic \u201cnot (even) one / not at all\u201d: 一 + measure word + 也/都 + a negative.",
+   ex:[{h:"一个也不能少",p:"yí ge yě bù néng shǎo",en:"can't do without a single one"},
+       {h:"一点儿也不着急",p:"yìdiǎnr yě bù zháojí",en:"not anxious in the least"}]},
+  {q:"多 / 少 + verb — adjusting amount",
+   a:"Put 多 (more) or 少 (less / fewer) before a verb to do more or less of the action.",
+   ex:[{h:"再多带几件衣服",p:"zài duō dài jǐ jiàn yīfu",en:"bring a few more clothes"},
+       {h:"还是少带一些吧",p:"háishi shǎo dài yìxiē ba",en:"better to bring fewer"}]}
+],dialogue:[
+  {num:1,sCn:"谈周末的打算",sEn:"Talking about the weekend plan",who:"小丽",whoEn:"Xiaoli",
+   h:"周末你有什么打算？",p:"Zhōumò nǐ yǒu shénme dǎsuàn?",en:"What are your plans for the weekend?"},
+  {num:1,sCn:"谈周末的打算",sEn:"Talking about the weekend plan",who:"小刚",whoEn:"Xiaogang",
+   h:"我早就想好了，请你吃饭、看电影、喝咖啡。",p:"Wǒ zǎo jiù xiǎnghǎo le, qǐng nǐ chī fàn, kàn diànyǐng, hē kāfēi.",en:"I decided ages ago — I'll treat you to a meal, a movie and coffee."},
+  {num:1,sCn:"谈周末的打算",sEn:"Talking about the weekend plan",who:"小丽",whoEn:"Xiaoli",
+   h:"请我？",p:"Qǐng wǒ?",en:"Treat me?"},
+  {num:1,sCn:"谈周末的打算",sEn:"Talking about the weekend plan",who:"小刚",whoEn:"Xiaogang",
+   h:"是啊，我已经找好饭馆了，电影票也买好了。",p:"Shì a, wǒ yǐjīng zhǎohǎo fànguǎn le, diànyǐngpiào yě mǎihǎo le.",en:"Yep — I've already found a restaurant and bought the movie tickets too."},
+  {num:1,sCn:"谈周末的打算",sEn:"Talking about the weekend plan",who:"小丽",whoEn:"Xiaoli",
+   h:"我还没想好要不要跟你去呢。",p:"Wǒ hái méi xiǎnghǎo yào bu yào gēn nǐ qù ne.",en:"I haven't even decided whether I want to go with you yet."},
+
+  {num:2,sCn:"在家",sEn:"At home",who:"妈妈",whoEn:"Mom",
+   h:"你一直玩儿电脑游戏，作业写完了吗？",p:"Nǐ yìzhí wánr diànnǎo yóuxì, zuòyè xiěwán le ma?",en:"You've been playing computer games this whole time — is your homework done?"},
+  {num:2,sCn:"在家",sEn:"At home",who:"儿子",whoEn:"Son",
+   h:"都写完了。",p:"Dōu xiěwán le.",en:"All done."},
+  {num:2,sCn:"在家",sEn:"At home",who:"妈妈",whoEn:"Mom",
+   h:"明天不是有考试吗？你怎么一点儿也不着急？",p:"Míngtiān bú shì yǒu kǎoshì ma? Nǐ zěnme yìdiǎnr yě bù zháojí?",en:"Isn't there a test tomorrow? How come you're not the least bit worried?"},
+  {num:2,sCn:"在家",sEn:"At home",who:"儿子",whoEn:"Son",
+   h:"我早就复习好了。",p:"Wǒ zǎo jiù fùxí hǎo le.",en:"I finished reviewing long ago."},
+  {num:2,sCn:"在家",sEn:"At home",who:"妈妈",whoEn:"Mom",
+   h:"那也不能一直玩儿啊。",p:"Nà yě bù néng yìzhí wánr a.",en:"Even so, you can't just keep playing."},
+
+  {num:3,sCn:"聊旅游计划",sEn:"Talking about the travel plan",who:"小丽",whoEn:"Xiaoli",
+   h:"下个月我去旅游，你能跟我一起去吗？",p:"Xià ge yuè wǒ qù lǚyóu, nǐ néng gēn wǒ yìqǐ qù ma?",en:"I'm traveling next month — can you come with me?"},
+  {num:3,sCn:"聊旅游计划",sEn:"Talking about the travel plan",who:"小刚",whoEn:"Xiaogang",
+   h:"我还没想好呢。你觉得哪儿最好玩儿？",p:"Wǒ hái méi xiǎnghǎo ne. Nǐ juéde nǎr zuì hǎowánr?",en:"I haven't decided yet. Where do you think is the most fun?"},
+  {num:3,sCn:"聊旅游计划",sEn:"Talking about the travel plan",who:"小丽",whoEn:"Xiaoli",
+   h:"南方啊，我们去年就是这个时候去的。",p:"Nánfāng a, wǒmen qùnián jiù shì zhège shíhou qù de.",en:"The south — it was around this time last year that we went."},
+  {num:3,sCn:"聊旅游计划",sEn:"Talking about the travel plan",who:"小刚",whoEn:"Xiaogang",
+   h:"南方太热了，北方好一些，不冷也不热。",p:"Nánfāng tài rè le, běifāng hǎo yìxiē, bù lěng yě bú rè.",en:"The south is too hot; the north is better — neither cold nor hot."},
+
+  {num:4,sCn:"准备去旅游",sEn:"Preparing for their trip",who:"小刚",whoEn:"Xiaogang",
+   h:"水果、面包、茶都准备好了，我们还带什么？",p:"Shuǐguǒ, miànbāo, chá dōu zhǔnbèi hǎo le, wǒmen hái dài shénme?",en:"Fruit, bread and tea are all ready — what else should we bring?"},
+  {num:4,sCn:"准备去旅游",sEn:"Preparing for their trip",who:"小丽",whoEn:"Xiaoli",
+   h:"手机、电脑、地图，一个也不能少。",p:"Shǒujī, diànnǎo, dìtú, yí ge yě bù néng shǎo.",en:"Phone, computer, map — can't leave out a single one."},
+  {num:4,sCn:"准备去旅游",sEn:"Preparing for their trip",who:"小刚",whoEn:"Xiaogang",
+   h:"这些我昨天下午就准备好了。",p:"Zhèxiē wǒ zuótiān xiàwǔ jiù zhǔnbèi hǎo le.",en:"I got those ready yesterday afternoon."},
+  {num:4,sCn:"准备去旅游",sEn:"Preparing for their trip",who:"小丽",whoEn:"Xiaoli",
+   h:"再多带几件衣服吧。",p:"Zài duō dài jǐ jiàn yīfu ba.",en:"Bring a few more clothes."},
+  {num:4,sCn:"准备去旅游",sEn:"Preparing for their trip",who:"小刚",whoEn:"Xiaogang",
+   h:"我们是去旅游，不是搬家，还是少带一些吧。",p:"Wǒmen shì qù lǚyóu, bú shì bān jiā, háishi shǎo dài yìxiē ba.",en:"We're going on a trip, not moving house — better to bring less."}
+]},
+{num:2,cn:"他什么时候回来",en:"When will he come back",wm:"回",active:true,newWords:[
+  {h:"腿",p:"tuǐ",m:"leg"},
+  {h:"疼",p:"téng",m:"hurt, painful"},
+  {h:"脚",p:"jiǎo",m:"foot"},
+  {h:"树",p:"shù",m:"tree"},
+  {h:"容易",p:"róngyì",m:"easy"},
+  {h:"难",p:"nán",m:"difficult"},
+  {h:"太太",p:"tàitai",m:"Mrs., madam"},
+  {h:"秘书",p:"mìshū",m:"secretary"},
+  {h:"经理",p:"jīnglǐ",m:"manager"},
+  {h:"办公室",p:"bàngōngshì",m:"office"},
+  {h:"辆",p:"liàng",m:"(measure word for vehicles)"},
+  {h:"楼",p:"lóu",m:"building"},
+  {h:"拿",p:"ná",m:"to take, fetch"},
+  {h:"把",p:"bǎ",m:"(measure word for things with a handle)"},
+  {h:"伞",p:"sǎn",m:"umbrella"},
+  {h:"胖",p:"pàng",m:"fat"},
+  {h:"其实",p:"qíshí",m:"actually, in fact"},
+  {h:"瘦",p:"shòu",m:"thin"}
+],review:[
+  {h:"休息",p:"xiūxi",m:"to rest"},
+  {h:"那边",p:"nàbian",m:"over there"},
+  {h:"坐",p:"zuò",m:"to sit"},
+  {h:"累",p:"lèi",m:"tired"},
+  {h:"上山",p:"shàng shān",m:"to go up a mountain"},
+  {h:"下山",p:"xià shān",m:"to go down a mountain"},
+  {h:"知道",p:"zhīdào",m:"to know"},
+  {h:"喂",p:"wèi",m:"hello (on the phone)"},
+  {h:"请问",p:"qǐngwèn",m:"may I ask"},
+  {h:"出去",p:"chūqu",m:"to go out"},
+  {h:"办事",p:"bànshì",m:"to run errands, handle affairs"},
+  {h:"回来",p:"huílai",m:"to come back"},
+  {h:"让",p:"ràng",m:"to let, have (sb do)"},
+  {h:"打电话",p:"dǎ diànhuà",m:"to make a phone call"},
+  {h:"出租车",p:"chūzūchē",m:"taxi"},
+  {h:"等",p:"děng",m:"to wait"},
+  {h:"回去",p:"huíqu",m:"to go back"},
+  {h:"运动",p:"yùndòng",m:"to exercise; sports"}
+],grammar:[
+  {q:"V了 …，就 … — \u201cas soon as / right after …\u201d",
+   a:"A completed action + 就 + the next action = the second happens immediately after the first. 了 marks the first verb.",
+   ex:[{h:"我拿了伞就下来",p:"wǒ nále sǎn jiù xiàlai",en:"I'll grab the umbrella and come right down"},
+       {h:"吃了饭就睡觉",p:"chīle fàn jiù shuì jiào",en:"goes to sleep right after eating"}]},
+  {q:"也 …，也 … — \u201cboth … and …\u201d",
+   a:"Repeat 也 before each predicate to list parallel facts about the same subject.",
+   ex:[{h:"腿也疼，脚也疼",p:"tuǐ yě téng, jiǎo yě téng",en:"my legs hurt and my feet hurt too"},
+       {h:"不冷也不热",p:"bù lěng yě bú rè",en:"neither cold nor hot"}]},
+  {q:"能 … 吗？— the rhetorical question",
+   a:"A 能…吗 question can be rhetorical — the speaker means the opposite is obvious.",
+   ex:[{h:"能不胖吗？",p:"néng bú pàng ma?",en:"how could (you) not get fat?"},
+       {h:"这样能行吗？",p:"zhèyàng néng xíng ma?",en:"how could that possibly work?"}]},
+  {q:"容易 / 难 + verb — \u201ceasy / hard to do\u201d",
+   a:"Put 容易 (easy) or 难 (hard) before a verb to say how easy or difficult the action is.",
+   ex:[{h:"上山容易，下山难",p:"shàng shān róngyì, xià shān nán",en:"going up is easy, coming down is hard"},
+       {h:"这个字很难写",p:"zhège zì hěn nán xiě",en:"this character is hard to write"}]}
+],dialogue:[
+  {num:1,sCn:"下山的路上",sEn:"On the way down the mountain",who:"小丽",whoEn:"Xiaoli",
+   h:"休息一下吧。",p:"Xiūxi yíxià ba.",en:"Let's take a rest."},
+  {num:1,sCn:"下山的路上",sEn:"On the way down the mountain",who:"小刚",whoEn:"Xiaogang",
+   h:"怎么了？",p:"Zěnme le?",en:"What's wrong?"},
+  {num:1,sCn:"下山的路上",sEn:"On the way down the mountain",who:"小丽",whoEn:"Xiaoli",
+   h:"我现在腿也疼，脚也疼。",p:"Wǒ xiànzài tuǐ yě téng, jiǎo yě téng.",en:"Right now my legs hurt and my feet hurt too."},
+  {num:1,sCn:"下山的路上",sEn:"On the way down the mountain",who:"小刚",whoEn:"Xiaogang",
+   h:"好，那边树多，我们过去坐一下吧。",p:"Hǎo, nàbian shù duō, wǒmen guòqu zuò yíxià ba.",en:"Okay, there are lots of trees over there — let's go sit a while."},
+  {num:1,sCn:"下山的路上",sEn:"On the way down the mountain",who:"小丽",whoEn:"Xiaoli",
+   h:"上来的时候我怎么没觉得这么累？",p:"Shànglai de shíhou wǒ zěnme méi juéde zhème lèi?",en:"How come I didn't feel this tired on the way up?"},
+  {num:1,sCn:"下山的路上",sEn:"On the way down the mountain",who:"小刚",whoEn:"Xiaogang",
+   h:"上山容易下山难，你不知道？",p:"Shàng shān róngyì xià shān nán, nǐ bù zhīdào?",en:"Going up is easy, coming down is hard — didn't you know?"},
+
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"喂，你好，请问周明在吗？",p:"Wèi, nǐ hǎo, qǐngwèn Zhōu Míng zài ma?",en:"Hello, may I ask if Zhou Ming is there?"},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"秘书",whoEn:"Secretary",
+   h:"周经理出去了，不在办公室。",p:"Zhōu jīnglǐ chūqu le, bú zài bàngōngshì.",en:"Manager Zhou has gone out — he's not in the office."},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"他去哪儿了？什么时候回来？",p:"Tā qù nǎr le? Shénme shíhou huílai?",en:"Where did he go? When will he be back?"},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"秘书",whoEn:"Secretary",
+   h:"他出去办事了，下午回来。",p:"Tā chūqu bàn shì le, xiàwǔ huílai.",en:"He went out to take care of some business — back in the afternoon."},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"回来了就让他给我打个电话。",p:"Huílai le jiù ràng tā gěi wǒ dǎ ge diànhuà.",en:"Have him call me as soon as he's back."},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"秘书",whoEn:"Secretary",
+   h:"好的，他到了办公室我就告诉他。",p:"Hǎo de, tā dàole bàngōngshì wǒ jiù gàosu tā.",en:"Sure — the moment he reaches the office I'll let him know."},
+
+  {num:3,sCn:"在楼门口送朋友",sEn:"Parting at the building exit",who:"小刚",whoEn:"Xiaogang",
+   h:"雨下得真大。你怎么回去？我送你吧。",p:"Yǔ xià de zhēn dà. Nǐ zěnme huíqu? Wǒ sòng nǐ ba.",en:"It's really pouring. How will you get back? Let me see you off."},
+  {num:3,sCn:"在楼门口送朋友",sEn:"Parting at the building exit",who:"小丽",whoEn:"Xiaoli",
+   h:"没事，我出去叫辆出租车就行了。",p:"Méi shì, wǒ chūqu jiào liàng chūzūchē jiù xíng le.",en:"It's fine — I'll just go out and hail a taxi."},
+  {num:3,sCn:"在楼门口送朋友",sEn:"Parting at the building exit",who:"小刚",whoEn:"Xiaogang",
+   h:"那你等等，我上楼去给你拿把伞。",p:"Nà nǐ děngdeng, wǒ shàng lóu qù gěi nǐ ná bǎ sǎn.",en:"Then wait a moment — I'll go upstairs and get you an umbrella."},
+  {num:3,sCn:"在楼门口送朋友",sEn:"Parting at the building exit",who:"小丽",whoEn:"Xiaoli",
+   h:"好的。我跟你一起上去吧。",p:"Hǎo de. Wǒ gēn nǐ yìqǐ shàngqu ba.",en:"Okay. I'll go up with you."},
+  {num:3,sCn:"在楼门口送朋友",sEn:"Parting at the building exit",who:"小刚",whoEn:"Xiaogang",
+   h:"你在这儿等吧，我拿了伞就下来。",p:"Nǐ zài zhèr děng ba, wǒ nále sǎn jiù xiàlai.",en:"Wait here — I'll grab the umbrella and come right down."},
+
+  {num:4,sCn:"在家",sEn:"At home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"你看，我这么胖，怎么办呢？",p:"Nǐ kàn, wǒ zhème pàng, zěnme bàn ne?",en:"Look at me, I'm so fat — what should I do?"},
+  {num:4,sCn:"在家",sEn:"At home",who:"周明",whoEn:"Zhou Ming",
+   h:"你每天晚上吃了饭就睡觉，也不出去走走，能不胖吗？",p:"Nǐ měi tiān wǎnshang chīle fàn jiù shuì jiào, yě bù chūqu zǒuzou, néng bú pàng ma?",en:"Every night you eat and then go straight to sleep, never going out for a walk — how could you not gain weight?"},
+  {num:4,sCn:"在家",sEn:"At home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"其实我每天都运动。",p:"Qíshí wǒ měi tiān dōu yùndòng.",en:"Actually I exercise every day."},
+  {num:4,sCn:"在家",sEn:"At home",who:"周明",whoEn:"Zhou Ming",
+   h:"但是你一点儿也没瘦！你做什么运动了？",p:"Dànshì nǐ yìdiǎnr yě méi shòu! Nǐ zuò shénme yùndòng le?",en:"But you haven't slimmed down at all! What exercise have you been doing?"},
+  {num:4,sCn:"在家",sEn:"At home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"做饭啊。",p:"Zuò fàn a.",en:"Cooking."}
+]},
+{num:3,cn:"桌子上放着很多饮料",en:"There are plenty of drinks on the table",wm:"饮",active:true,newWords:[
+  {h:"还是",p:"háishi",m:"or (in a question)"},
+  {h:"爬山",p:"pá shān",m:"to climb a mountain, hike"},
+  {h:"小心",p:"xiǎoxīn",m:"careful"},
+  {h:"条",p:"tiáo",m:"(measure word for pants, dresses, etc.)"},
+  {h:"裤子",p:"kùzi",m:"pants, trousers"},
+  {h:"记得",p:"jìde",m:"to remember"},
+  {h:"衬衫",p:"chènshān",m:"shirt"},
+  {h:"元",p:"yuán",m:"(measure word) yuan (unit of money)"},
+  {h:"新鲜",p:"xīnxiān",m:"fresh"},
+  {h:"甜",p:"tián",m:"sweet"},
+  {h:"只",p:"zhǐ",m:"only, solely"},
+  {h:"放",p:"fàng",m:"to put, place"},
+  {h:"饮料",p:"yǐnliào",m:"drink, beverage"},
+  {h:"或者",p:"huòzhě",m:"or (in a statement)"},
+  {h:"舒服",p:"shūfu",m:"comfortable"},
+  {h:"花",p:"huā",m:"flower"},
+  {h:"绿",p:"lǜ",m:"green"}
+],review:[
+  {h:"明天",p:"míngtiān",m:"tomorrow"},
+  {h:"晴天",p:"qíngtiān",m:"sunny day"},
+  {h:"阴天",p:"yīntiān",m:"cloudy / overcast day"},
+  {h:"多云",p:"duōyún",m:"cloudy"},
+  {h:"电视",p:"diànshì",m:"television"},
+  {h:"有事",p:"yǒu shì",m:"to have something on, be busy"},
+  {h:"怎么样",p:"zěnmeyàng",m:"how about; how is"},
+  {h:"已经",p:"yǐjīng",m:"already"},
+  {h:"别的",p:"biéde",m:"other, else"},
+  {h:"多少钱",p:"duōshao qián",m:"how much (money)"},
+  {h:"上面",p:"shàngmian",m:"on top, above"},
+  {h:"买",p:"mǎi",m:"to buy"},
+  {h:"西瓜",p:"xīguā",m:"watermelon"},
+  {h:"苹果",p:"píngguǒ",m:"apple"},
+  {h:"桌子",p:"zhuōzi",m:"table"},
+  {h:"咖啡",p:"kāfēi",m:"coffee"},
+  {h:"喜欢",p:"xǐhuan",m:"to like"},
+  {h:"工作",p:"gōngzuò",m:"work; to work"}
+],grammar:[
+  {q:"V + 着 — existential / ongoing state",
+   a:"place + Verb + 着 + object = something exists there in that state. 着 marks a continuing state.",
+   ex:[{h:"桌子上放着很多饮料",p:"zhuōzi shang fàngzhe hěn duō yǐnliào",en:"on the table there are lots of drinks"},
+       {h:"这上面写着320元",p:"zhè shàngmian xiězhe sān bǎi èrshí yuán",en:"it says 320 yuan on it"}]},
+  {q:"还是 vs 或者 — two ways to say \u201cor\u201d",
+   a:"还是 offers a choice in a QUESTION; 或者 connects options in a STATEMENT.",
+   ex:[{h:"明天是晴天还是阴天？",p:"míngtiān shì qíngtiān háishi yīntiān?",en:"is tomorrow sunny or cloudy?"},
+       {h:"茶或者咖啡都可以",p:"chá huòzhě kāfēi dōu kěyǐ",en:"tea or coffee, either is fine"}]},
+  {q:"Adj + (一)点儿 — \u201ca bit (more)\u201d",
+   a:"Adjective + (一)点儿 softens to \u201ca little / a bit more\u201d — common in advice or requests.",
+   ex:[{h:"爬山的时候要小心点儿",p:"pá shān de shíhou yào xiǎoxīn diǎnr",en:"be a bit careful when hiking"},
+       {h:"买一个大点儿的",p:"mǎi yí ge dà diǎnr de",en:"get a bigger one"}]},
+  {q:"只 … 不 … — \u201conly … (and) not …\u201d",
+   a:"只 + (do A) + 不 + (do B) = do only A and not B.",
+   ex:[{h:"今天晚上只吃水果不吃饭",p:"jīntiān wǎnshang zhǐ chī shuǐguǒ bù chī fàn",en:"tonight I'll only eat fruit, not a meal"},
+       {h:"他只说不做",p:"tā zhǐ shuō bú zuò",en:"he only talks and doesn't act"}]}
+],dialogue:[
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小刚",whoEn:"Xiaogang",
+   h:"明天是晴天还是阴天？",p:"Míngtiān shì qíngtiān háishi yīntiān?",en:"Will tomorrow be sunny or cloudy?"},
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小丽",whoEn:"Xiaoli",
+   h:"阴天，电视上说多云。怎么了？有事？",p:"Yīntiān, diànshì shang shuō duōyún. Zěnme le? Yǒu shì?",en:"Cloudy — the TV says overcast. What's up? Something going on?"},
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小刚",whoEn:"Xiaogang",
+   h:"没事，我们明天要去爬山。",p:"Méi shì, wǒmen míngtiān yào qù pá shān.",en:"Nothing — we're going hiking tomorrow."},
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小丽",whoEn:"Xiaoli",
+   h:"爬山的时候要小心点儿。",p:"Pá shān de shíhou yào xiǎoxīn diǎnr.",en:"Be a bit careful when you're hiking."},
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小刚",whoEn:"Xiaogang",
+   h:"好，你也去吗？",p:"Hǎo, nǐ yě qù ma?",en:"Okay — are you coming too?"},
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小丽",whoEn:"Xiaoli",
+   h:"我不去，我有事。",p:"Wǒ bú qù, wǒ yǒu shì.",en:"I'm not going — I've got something on."},
+
+  {num:2,sCn:"在商场",sEn:"In a mall",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"你觉得这条裤子怎么样？",p:"Nǐ juéde zhè tiáo kùzi zěnmeyàng?",en:"What do you think of these pants?"},
+  {num:2,sCn:"在商场",sEn:"In a mall",who:"周明",whoEn:"Zhou Ming",
+   h:"我记得你已经有两条这样的裤子了。",p:"Wǒ jìde nǐ yǐjīng yǒu liǎng tiáo zhèyàng de kùzi le.",en:"I remember you already have two pairs of pants like these."},
+  {num:2,sCn:"在商场",sEn:"In a mall",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"那我们再看看别的。",p:"Nà wǒmen zài kànkan biéde.",en:"Then let's look at something else."},
+  {num:2,sCn:"在商场",sEn:"In a mall",who:"周明",whoEn:"Zhou Ming",
+   h:"这件衬衫怎么样？",p:"Zhè jiàn chènshān zěnmeyàng?",en:"How about this shirt?"},
+  {num:2,sCn:"在商场",sEn:"In a mall",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"还不错，多少钱？",p:"Hái búcuò, duōshao qián?",en:"Not bad — how much is it?"},
+  {num:2,sCn:"在商场",sEn:"In a mall",who:"周明",whoEn:"Zhou Ming",
+   h:"这上面写着320元。",p:"Zhè shàngmian xiězhe sān bǎi èrshí yuán.",en:"It says 320 yuan here."},
+  {num:2,sCn:"在商场",sEn:"In a mall",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"买一件。",p:"Mǎi yí jiàn.",en:"We'll take one."},
+
+  {num:3,sCn:"在水果店",sEn:"In a fruit store",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"这些水果真新鲜，我们买西瓜还是苹果？",p:"Zhèxiē shuǐguǒ zhēn xīnxiān, wǒmen mǎi xīguā háishi píngguǒ?",en:"This fruit is really fresh — should we buy watermelon or apples?"},
+  {num:3,sCn:"在水果店",sEn:"In a fruit store",who:"周明",whoEn:"Zhou Ming",
+   h:"西瓜吧。你看，这上面写着“西瓜不甜不要钱”。",p:"Xīguā ba. Nǐ kàn, zhè shàngmian xiězhe \u201cxīguā bù tián bú yào qián\u201d.",en:"Watermelon. Look, it says here \u2018if the watermelon isn't sweet, it's free.\u2019"},
+  {num:3,sCn:"在水果店",sEn:"In a fruit store",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"那我们买一个大点儿的吧。",p:"Nà wǒmen mǎi yí ge dà diǎnr de ba.",en:"Then let's get a bigger one."},
+  {num:3,sCn:"在水果店",sEn:"In a fruit store",who:"周明",whoEn:"Zhou Ming",
+   h:"再买几个苹果。",p:"Zài mǎi jǐ ge píngguǒ.",en:"And a few apples too."},
+  {num:3,sCn:"在水果店",sEn:"In a fruit store",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"好啊，今天晚上只吃水果不吃饭！",p:"Hǎo a, jīntiān wǎnshang zhǐ chī shuǐguǒ bù chī fàn!",en:"Sure — tonight we'll just eat fruit and skip dinner!"},
+
+  {num:4,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiaoli",
+   h:"桌子上放着很多饮料，你喝什么？",p:"Zhuōzi shang fàngzhe hěn duō yǐnliào, nǐ hē shénme?",en:"There are lots of drinks on the table — what will you have?"},
+  {num:4,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiaogang",
+   h:"茶或者咖啡都可以。你呢？你喝什么？",p:"Chá huòzhě kāfēi dōu kěyǐ. Nǐ ne? Nǐ hē shénme?",en:"Tea or coffee, either's fine. And you? What are you having?"},
+  {num:4,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiaoli",
+   h:"我喝茶，茶是我的最爱。天冷了或者工作累了的时候，喝杯热茶会很舒服。",p:"Wǒ hē chá, chá shì wǒ de zuì ài. Tiān lěngle huòzhě gōngzuò lèile de shíhou, hē bēi rè chá huì hěn shūfu.",en:"Tea — it's my favourite. When it's cold or I'm tired from work, a cup of hot tea feels great."},
+  {num:4,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiaogang",
+   h:"你喜欢喝什么茶？",p:"Nǐ xǐhuan hē shénme chá?",en:"What kind of tea do you like?"},
+  {num:4,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiaoli",
+   h:"花茶、绿茶、红茶，我都喜欢。",p:"Huāchá, lǜchá, hóngchá, wǒ dōu xǐhuan.",en:"Jasmine tea, green tea, black tea — I like them all."}
+]},
+{num:4,cn:"她总是笑着跟客人说话",en:"She always smiles when talking to customers",wm:"笑",active:true,newWords:[
+  {h:"比赛",p:"bǐsài",m:"match, competition"},
+  {h:"照片",p:"zhàopiàn",m:"photo"},
+  {h:"年级",p:"niánjí",m:"grade, year (in school)"},
+  {h:"又",p:"yòu",m:"(又…又…) and; both"},
+  {h:"聪明",p:"cōngming",m:"clever, smart"},
+  {h:"热情",p:"rèqíng",m:"warm, enthusiastic"},
+  {h:"努力",p:"nǔlì",m:"hard-working; to make effort"},
+  {h:"总是",p:"zǒngshì",m:"always"},
+  {h:"回答",p:"huídá",m:"to answer"},
+  {h:"站",p:"zhàn",m:"to stand"},
+  {h:"饿",p:"è",m:"hungry"},
+  {h:"超市",p:"chāoshì",m:"supermarket"},
+  {h:"蛋糕",p:"dàngāo",m:"cake"},
+  {h:"年轻",p:"niánqīng",m:"young"},
+  {h:"认真",p:"rènzhēn",m:"serious, earnest"},
+  {h:"客人",p:"kèrén",m:"customer, guest"}
+],review:[
+  {h:"照",p:"zhào",m:"to take (a photo)"},
+  {h:"高",p:"gāo",m:"tall, high"},
+  {h:"漂亮",p:"piàoliang",m:"pretty, beautiful"},
+  {h:"女孩儿",p:"nǚháir",m:"girl"},
+  {h:"旁边",p:"pángbiān",m:"beside, next to"},
+  {h:"拿",p:"ná",m:"to hold, take"},
+  {h:"笑",p:"xiào",m:"to smile, laugh"},
+  {h:"问题",p:"wèntí",m:"question, problem"},
+  {h:"每个人",p:"měi ge rén",m:"everyone"},
+  {h:"鲜花",p:"xiānhuā",m:"fresh flowers"},
+  {h:"门口",p:"ménkǒu",m:"doorway, entrance"},
+  {h:"等",p:"děng",m:"to wait"},
+  {h:"有点儿",p:"yǒudiǎnr",m:"a little, somewhat"},
+  {h:"东西",p:"dōngxi",m:"thing(s)"},
+  {h:"便宜",p:"piányi",m:"cheap"},
+  {h:"好吃",p:"hǎochī",m:"tasty, delicious"},
+  {h:"回家",p:"huí jiā",m:"to go home"},
+  {h:"服务员",p:"fúwùyuán",m:"waiter, attendant"}
+],grammar:[
+  {q:"V着 + V2 — \u201cdo V2 while V1-ing\u201d (manner)",
+   a:"Verb1 + 着 + Verb2: the first verb is the manner or accompanying action for the second.",
+   ex:[{h:"她总是笑着跟客人说话",p:"tā zǒngshì xiàozhe gēn kèrén shuō huà",en:"she always talks to customers with a smile"},
+       {h:"吃着蛋糕看电视",p:"chīzhe dàngāo kàn diànshì",en:"watch TV while eating cake"}]},
+  {q:"又 … 又 … (yòu … yòu …) — \u201cboth … and …\u201d",
+   a:"又 + quality1 又 + quality2 lists two qualities (usually adjectives) held at the same time.",
+   ex:[{h:"又高又漂亮",p:"yòu gāo yòu piàoliang",en:"both tall and pretty"},
+       {h:"又便宜又好吃",p:"yòu piányi yòu hǎochī",en:"cheap and tasty"}]},
+  {q:"对 + somebody + verb — who an action is aimed at",
+   a:"对 + person marks the target of an action such as smiling, speaking, or being kind.",
+   ex:[{h:"她对每个人都笑",p:"tā duì měi ge rén dōu xiào",en:"she smiles at everyone"},
+       {h:"常常对我笑",p:"chángcháng duì wǒ xiào",en:"often smiles at me"}]},
+  {q:"总是 / 常常 — \u201calways / often\u201d",
+   a:"Frequency adverbs go before the verb: 总是 (always), 常常 (often).",
+   ex:[{h:"她总是笑着回答问题",p:"tā zǒngshì xiàozhe huídá wèntí",en:"she always answers questions with a smile"},
+       {h:"他常常迟到",p:"tā chángcháng chídào",en:"he's often late"}]}
+],dialogue:[
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"这是你们比赛的照片吗？",p:"Zhè shì nǐmen bǐsài de zhàopiàn ma?",en:"Are these photos from your competition?"},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"马可",whoEn:"Marco",
+   h:"是，这是我们比赛后照的。",p:"Shì, zhè shì wǒmen bǐsài hòu zhào de.",en:"Yes — we took them after the competition."},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"照得不错，你们都是一个年级的吗？",p:"Zhào de búcuò, nǐmen dōu shì yí ge niánjí de ma?",en:"Nice shots — are you all in the same grade?"},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"马可",whoEn:"Marco",
+   h:"不是。那个又高又漂亮的女孩儿是二年级的。",p:"Bú shì. Nàge yòu gāo yòu piàoliang de nǚháir shì èr niánjí de.",en:"No. That tall, pretty girl is in second grade."},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"旁边那个拿着书笑的人是谁？",p:"Pángbiān nàge názhe shū xiào de rén shì shéi?",en:"Who's that person beside her, smiling and holding a book?"},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"马可",whoEn:"Marco",
+   h:"那是我！",p:"Nà shì wǒ!",en:"That's me!"},
+
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"小丽",whoEn:"Xiaoli",
+   h:"你觉得小红怎么样？",p:"Nǐ juéde Xiǎohóng zěnmeyàng?",en:"What do you think of Xiaohong?"},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"同学",whoEn:"Classmate",
+   h:"她又聪明又热情，也很努力。",p:"Tā yòu cōngming yòu rèqíng, yě hěn nǔlì.",en:"She's both smart and warm, and works hard too."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"小丽",whoEn:"Xiaoli",
+   h:"我看她总是笑着回答老师的问题。",p:"Wǒ kàn tā zǒngshì xiàozhe huídá lǎoshī de wèntí.",en:"I've noticed she always answers the teacher's questions with a smile."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"同学",whoEn:"Classmate",
+   h:"她对每个人都笑，也常常对我笑。",p:"Tā duì měi ge rén dōu xiào, yě chángcháng duì wǒ xiào.",en:"She smiles at everyone, and often smiles at me too."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"小丽",whoEn:"Xiaoli",
+   h:"你是不是喜欢她啊？",p:"Nǐ shì bu shì xǐhuan tā a?",en:"Do you like her or what?"},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"同学",whoEn:"Classmate",
+   h:"喜欢她的人太多了，你看那些拿着鲜花站在门口的，都是等她的。",p:"Xǐhuan tā de rén tài duō le, nǐ kàn nàxiē názhe xiānhuā zhàn zài ménkǒu de, dōu shì děng tā de.",en:"Lots of people like her — see those standing at the door holding flowers? They're all waiting for her."},
+
+  {num:3,sCn:"在超市门口",sEn:"At a supermarket entrance",who:"小刚",whoEn:"Xiaogang",
+   h:"我有点儿饿了，我们进超市买点儿东西吧。",p:"Wǒ yǒudiǎnr è le, wǒmen jìn chāoshì mǎi diǎnr dōngxi ba.",en:"I'm a bit hungry — let's go into the supermarket and get something."},
+  {num:3,sCn:"在超市门口",sEn:"At a supermarket entrance",who:"小丽",whoEn:"Xiaoli",
+   h:"好啊，这家超市的蛋糕又便宜又好吃，一块只要2.99元。",p:"Hǎo a, zhè jiā chāoshì de dàngāo yòu piányi yòu hǎochī, yí kuài zhǐ yào èr diǎn jiǔ jiǔ yuán.",en:"Sure — this supermarket's cake is cheap and tasty; one piece is just 2.99 yuan."},
+  {num:3,sCn:"在超市门口",sEn:"At a supermarket entrance",who:"小刚",whoEn:"Xiaogang",
+   h:"我们买两块，回家吃着蛋糕看电视，怎么样？",p:"Wǒmen mǎi liǎng kuài, huí jiā chīzhe dàngāo kàn diànshì, zěnmeyàng?",en:"Let's get two pieces and watch TV while eating cake at home — how's that?"},
+  {num:3,sCn:"在超市门口",sEn:"At a supermarket entrance",who:"小丽",whoEn:"Xiaoli",
+   h:"好啊，我再去买一些喝的。",p:"Hǎo a, wǒ zài qù mǎi yìxiē hē de.",en:"Sure — I'll go grab some drinks too."},
+  {num:3,sCn:"在超市门口",sEn:"At a supermarket entrance",who:"小刚",whoEn:"Xiaogang",
+   h:"喝着咖啡吃蛋糕，太好了！",p:"Hēzhe kāfēi chī dàngāo, tài hǎo le!",en:"Coffee and cake together — perfect!"},
+
+  {num:4,sCn:"在饭馆",sEn:"In a restaurant",who:"经理",whoEn:"Manager",
+   h:"您好！您找谁？",p:"Nín hǎo! Nín zhǎo shéi?",en:"Hello! Who are you looking for?"},
+  {num:4,sCn:"在饭馆",sEn:"In a restaurant",who:"客人",whoEn:"Customer",
+   h:"你们这儿是不是有一个又年轻又漂亮的服务员？",p:"Nǐmen zhèr shì bu shì yǒu yí ge yòu niánqīng yòu piàoliang de fúwùyuán?",en:"Do you have a young, pretty server here?"},
+  {num:4,sCn:"在饭馆",sEn:"In a restaurant",who:"经理",whoEn:"Manager",
+   h:"我们这儿年轻、漂亮的服务员有很多。",p:"Wǒmen zhèr niánqīng, piàoliang de fúwùyuán yǒu hěn duō.",en:"We have plenty of young, pretty servers here."},
+  {num:4,sCn:"在饭馆",sEn:"In a restaurant",who:"客人",whoEn:"Customer",
+   h:"她工作又认真又热情。",p:"Tā gōngzuò yòu rènzhēn yòu rèqíng.",en:"She works both conscientiously and warmly."},
+  {num:4,sCn:"在饭馆",sEn:"In a restaurant",who:"经理",whoEn:"Manager",
+   h:"您能再说说吗？",p:"Nín néng zài shuōshuo ma?",en:"Could you tell me a bit more?"},
+  {num:4,sCn:"在饭馆",sEn:"In a restaurant",who:"客人",whoEn:"Customer",
+   h:"她总是笑着跟客人说话。",p:"Tā zǒngshì xiàozhe gēn kèrén shuō huà.",en:"She always talks to customers with a smile."},
+  {num:4,sCn:"在饭馆",sEn:"In a restaurant",who:"经理",whoEn:"Manager",
+   h:"啊，我知道了，你说的是李小美吧？",p:"À, wǒ zhīdào le, nǐ shuō de shì Lǐ Xiǎoměi ba?",en:"Ah, I know now — you mean Li Xiaomei, right?"}
+]},
+{num:5,cn:"我最近越来越胖了",en:"I'm getting fatter and fatter lately",wm:"胖",active:true,newWords:[
+  {h:"发烧",p:"fā shāo",m:"to have a fever"},
+  {h:"为",p:"wèi",m:"for (the benefit of)"},
+  {h:"照顾",p:"zhàogù",m:"to take care of"},
+  {h:"用",p:"yòng",m:"to need (不用 = no need)"},
+  {h:"感冒",p:"gǎnmào",m:"to catch a cold; a cold"},
+  {h:"季节",p:"jìjié",m:"season"},
+  {h:"当然",p:"dāngrán",m:"of course"},
+  {h:"春（天）",p:"chūn(tiān)",m:"spring"},
+  {h:"草",p:"cǎo",m:"grass"},
+  {h:"夏（天）",p:"xià(tiān)",m:"summer"},
+  {h:"裙子",p:"qúnzi",m:"dress, skirt"},
+  {h:"最近",p:"zuìjìn",m:"lately, recently"},
+  {h:"越",p:"yuè",m:"more, to a greater degree"}
+],review:[
+  {h:"听说",p:"tīngshuō",m:"to hear (that)"},
+  {h:"身体",p:"shēntǐ",m:"body, health"},
+  {h:"前几天",p:"qián jǐ tiān",m:"a few days ago"},
+  {h:"绿茶",p:"lǜchá",m:"green tea"},
+  {h:"不错",p:"búcuò",m:"not bad, pretty good"},
+  {h:"吃药",p:"chī yào",m:"to take medicine"},
+  {h:"水",p:"shuǐ",m:"water"},
+  {h:"为什么",p:"wèishénme",m:"why"},
+  {h:"儿子",p:"érzi",m:"son"},
+  {h:"生病",p:"shēng bìng",m:"to fall ill"},
+  {h:"医院",p:"yīyuàn",m:"hospital"},
+  {h:"昨天",p:"zuótiān",m:"yesterday"},
+  {h:"下次",p:"xià cì",m:"next time"},
+  {h:"天气",p:"tiānqì",m:"weather"},
+  {h:"开",p:"kāi",m:"to bloom; to open"},
+  {h:"因为",p:"yīnwèi",m:"because"},
+  {h:"穿",p:"chuān",m:"to wear"},
+  {h:"今年",p:"jīnnián",m:"this year"}
+],grammar:[
+  {q:"越来越 + adj/verb — \u201cmore and more\u201d",
+   a:"越来越 + an adjective or verb = increasingly / more and more over time. Often ends with 了.",
+   ex:[{h:"我最近越来越胖了",p:"wǒ zuìjìn yuè lái yuè pàng le",en:"I've been getting fatter and fatter lately"},
+       {h:"你越来越漂亮了",p:"nǐ yuè lái yuè piàoliang le",en:"you're getting prettier and prettier"}]},
+  {q:"Sentence-final 了 — change of state",
+   a:"了 at the end marks a NEW situation or change — \u201cnow / has become.\u201d",
+   ex:[{h:"现在好多了",p:"xiànzài hǎoduō le",en:"it's much better now"},
+       {h:"草和树都绿了",p:"cǎo hé shù dōu lǜ le",en:"the grass and trees have turned green"}]},
+  {q:"为 (wèi) — \u201cfor (someone)\u201d",
+   a:"为 + person marks who an action benefits or is done for.",
+   ex:[{h:"这是我为你买的绿茶",p:"zhè shì wǒ wèi nǐ mǎi de lǜchá",en:"this is green tea I bought for you"},
+       {h:"为大家服务",p:"wèi dàjiā fúwù",en:"to serve everyone"}]},
+  {q:"不用 (búyòng) — \u201cno need to\u201d",
+   a:"不用 + verb = needn't / no need to (the negative of 要 / 得 here).",
+   ex:[{h:"不用去医院",p:"búyòng qù yīyuàn",en:"no need to go to the hospital"},
+       {h:"不用谢",p:"búyòng xiè",en:"no need to thank me"}]}
+],dialogue:[
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"朋友",whoEn:"Friend",
+   h:"我听说你身体不舒服，怎么了？",p:"Wǒ tīngshuō nǐ shēntǐ bù shūfu, zěnme le?",en:"I heard you weren't feeling well — what happened?"},
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小丽",whoEn:"Xiaoli",
+   h:"前几天有点儿发烧，现在好多了。",p:"Qián jǐ tiān yǒudiǎnr fā shāo, xiànzài hǎoduō le.",en:"I had a bit of a fever a few days ago — much better now."},
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"朋友",whoEn:"Friend",
+   h:"喝杯茶吧，这是我为你买的绿茶，很不错。",p:"Hē bēi chá ba, zhè shì wǒ wèi nǐ mǎi de lǜchá, hěn búcuò.",en:"Have a cup of tea — this is green tea I bought for you, it's quite good."},
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小丽",whoEn:"Xiaoli",
+   h:"谢谢，我要吃药，不喝茶了。",p:"Xièxie, wǒ yào chī yào, bù hē chá le.",en:"Thanks, but I need to take medicine, so no tea for me."},
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"朋友",whoEn:"Friend",
+   h:"那喝杯水吧。",p:"Nà hē bēi shuǐ ba.",en:"Then have a cup of water."},
+  {num:1,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小丽",whoEn:"Xiaoli",
+   h:"好的。",p:"Hǎo de.",en:"Okay."},
+
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"对不起，我明天不能和你们出去玩儿了。",p:"Duìbuqǐ, wǒ míngtiān bù néng hé nǐmen chūqu wánr le.",en:"Sorry, I can't go out with you all tomorrow after all."},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"张太太",whoEn:"Mrs. Zhang",
+   h:"为什么？怎么了？",p:"Wèi shénme? Zěnme le?",en:"Why? What's the matter?"},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"我儿子生病了，我要在家照顾他。",p:"Wǒ érzi shēng bìng le, wǒ yào zài jiā zhàogù tā.",en:"My son is sick — I need to stay home and look after him."},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"张太太",whoEn:"Mrs. Zhang",
+   h:"他吃药了吗？要不要去医院？",p:"Tā chī yào le ma? Yào bu yào qù yīyuàn?",en:"Has he taken medicine? Should he go to the hospital?"},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"不用去医院，昨天吃了感冒药，现在好一些了。",p:"Búyòng qù yīyuàn, zuótiān chīle gǎnmào yào, xiànzài hǎo yìxiē le.",en:"No need for the hospital — he took cold medicine yesterday and is a bit better now."},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"张太太",whoEn:"Mrs. Zhang",
+   h:"那我们下次再一起出去玩儿吧。",p:"Nà wǒmen xià cì zài yìqǐ chūqu wánr ba.",en:"Then let's go out together another time."},
+
+  {num:3,sCn:"在小刚家",sEn:"At Xiaogang's home",who:"小丽",whoEn:"Xiaoli",
+   h:"你最喜欢哪个季节？",p:"Nǐ zuì xǐhuan nǎge jìjié?",en:"Which season do you like best?"},
+  {num:3,sCn:"在小刚家",sEn:"At Xiaogang's home",who:"小刚",whoEn:"Xiaogang",
+   h:"当然是春天，天气不那么冷了，草和树都绿了，花也开了。",p:"Dāngrán shì chūntiān, tiānqì bú nàme lěng le, cǎo hé shù dōu lǜ le, huā yě kāi le.",en:"Spring, of course — the weather isn't so cold anymore, the grass and trees turn green, and the flowers bloom."},
+  {num:3,sCn:"在小刚家",sEn:"At Xiaogang's home",who:"小丽",whoEn:"Xiaoli",
+   h:"我最喜欢夏天，因为我可以穿漂亮的裙子了。",p:"Wǒ zuì xǐhuan xiàtiān, yīnwèi wǒ kěyǐ chuān piàoliang de qúnzi le.",en:"I like summer best, because I get to wear pretty dresses."},
+  {num:3,sCn:"在小刚家",sEn:"At Xiaogang's home",who:"小刚",whoEn:"Xiaogang",
+   h:"那我也喜欢夏天了。",p:"Nà wǒ yě xǐhuan xiàtiān le.",en:"Then I like summer too now."},
+  {num:3,sCn:"在小刚家",sEn:"At Xiaogang's home",who:"小丽",whoEn:"Xiaoli",
+   h:"怎么？你也有漂亮的裙子？",p:"Zěnme? Nǐ yě yǒu piàoliang de qúnzi?",en:"What? You have pretty dresses too?"},
+  {num:3,sCn:"在小刚家",sEn:"At Xiaogang's home",who:"小刚",whoEn:"Xiaogang",
+   h:"不，我喜欢看你穿漂亮的裙子。",p:"Bù, wǒ xǐhuan kàn nǐ chuān piàoliang de qúnzi.",en:"No — I like watching you wear pretty dresses."},
+
+  {num:4,sCn:"在小刚家",sEn:"At Xiaogang's home",who:"小丽",whoEn:"Xiaoli",
+   h:"我最近越来越胖了。",p:"Wǒ zuìjìn yuè lái yuè pàng le.",en:"I've been getting fatter and fatter lately."},
+  {num:4,sCn:"在小刚家",sEn:"At Xiaogang's home",who:"小刚",whoEn:"Xiaogang",
+   h:"谁说的？我觉得你越来越漂亮了。",p:"Shéi shuō de? Wǒ juéde nǐ yuè lái yuè piàoliang le.",en:"Says who? I think you're getting prettier and prettier."},
+  {num:4,sCn:"在小刚家",sEn:"At Xiaogang's home",who:"小丽",whoEn:"Xiaoli",
+   h:"你看，这条裙子是去年买的，今年就不能穿了。",p:"Nǐ kàn, zhè tiáo qúnzi shì qùnián mǎi de, jīnnián jiù bù néng chuān le.",en:"Look — I bought this skirt last year and already can't wear it this year."},
+  {num:4,sCn:"在小刚家",sEn:"At Xiaogang's home",who:"小刚",whoEn:"Xiaogang",
+   h:"那是因为你吃得太多了，少吃点儿吧。",p:"Nà shì yīnwèi nǐ chī de tài duō le, shǎo chī diǎnr ba.",en:"That's because you eat too much — eat a little less."},
+  {num:4,sCn:"在小刚家",sEn:"At Xiaogang's home",who:"小丽",whoEn:"Xiaoli",
+   h:"我做的饭越来越好吃，我能少吃吗？",p:"Wǒ zuò de fàn yuè lái yuè hǎochī, wǒ néng shǎo chī ma?",en:"My cooking gets tastier and tastier — how could I eat less?"}
+]},
+{num:6,cn:"怎么突然找不到了",en:"Why are they suddenly missing",wm:"找",active:true,newWords:[
+  {h:"眼镜",p:"yǎnjìng",m:"glasses, spectacles"},
+  {h:"突然",p:"tūrán",m:"suddenly"},
+  {h:"离开",p:"líkāi",m:"to leave; to part with"},
+  {h:"清楚",p:"qīngchu",m:"clear, distinct"},
+  {h:"刚才",p:"gāngcái",m:"just now (time word)"},
+  {h:"帮忙",p:"bāngmáng",m:"to help (do a favor)"},
+  {h:"特别",p:"tèbié",m:"especially; special"},
+  {h:"讲",p:"jiǎng",m:"to explain; to tell"},
+  {h:"明白",p:"míngbai",m:"clear; to understand"},
+  {h:"锻炼",p:"duànliàn",m:"to work out, exercise"},
+  {h:"音乐",p:"yīnyuè",m:"music"},
+  {h:"公园",p:"gōngyuán",m:"park"},
+  {h:"聊天儿",p:"liáotiānr",m:"to chat"},
+  {h:"睡着",p:"shuìzháo",m:"to fall asleep (着 = zháo)"},
+  {h:"更",p:"gèng",m:"more, even more"}
+],review:[
+  {h:"看见",p:"kànjiàn",m:"to see"},
+  {h:"字",p:"zì",m:"character"},
+  {h:"作业",p:"zuòyè",m:"homework"},
+  {h:"题",p:"tí",m:"problem, question"},
+  {h:"难",p:"nán",m:"difficult"},
+  {h:"会",p:"huì",m:"can, know how to"},
+  {h:"高兴",p:"gāoxìng",m:"happy"},
+  {h:"请",p:"qǐng",m:"to invite, treat"},
+  {h:"饭馆",p:"fànguǎn",m:"restaurant"},
+  {h:"音乐会",p:"yīnyuèhuì",m:"concert"},
+  {h:"票",p:"piào",m:"ticket"},
+  {h:"牛奶",p:"niúnǎi",m:"milk"},
+  {h:"晚上",p:"wǎnshang",m:"evening"},
+  {h:"杯",p:"bēi",m:"(measure word) cup"},
+  {h:"房间",p:"fángjiān",m:"room"},
+  {h:"桌子",p:"zhuōzi",m:"table"},
+  {h:"找",p:"zhǎo",m:"to look for"},
+  {h:"还",p:"hái",m:"still; also"}
+],grammar:[
+  {q:"Potential complement — V 得 (de) / 不 (bu) + result. What does it express?",
+   a:"Whether the action can REACH its result. 得 (de) = can, 不 (bu) = can't. It's about feasibility, not permission (unlike 能 néng / 可以 kěyǐ).",
+   ex:[{h:"看得懂",p:"kàn de dǒng",en:"can read & understand"},
+       {h:"看不懂",p:"kàn bu dǒng",en:"can't understand it"}]},
+  {q:"睡不着 (shuì bu zháo) vs 睡得好 (shuì de hǎo) — same 得 / 不?",
+   a:"No. 睡不着 = potential complement (can't reach the state of sleep). 睡得好 = manner / degree complement (HOW WELL you sleep). Same verb 睡 (shuì), two structures.",
+   ex:[{h:"睡不着",p:"shuì bu zháo",en:"can't fall asleep"},
+       {h:"睡得好",p:"shuì de hǎo",en:"sleep well"}]},
+  {q:"我的眼镜呢? (Wǒ de yǎnjìng ne?) — what is 呢 (ne) doing?",
+   a:"N + 呢 (ne) asks \u201cWhere is N?\u201d — a quick way to ask where something or someone is.",
+   ex:[{h:"手机呢?",p:"Shǒujī ne?",en:"Where's the phone?"},
+       {h:"小王呢?",p:"Xiǎo Wáng ne?",en:"Where's Xiao Wang?"}]},
+  {q:"眼镜呢? and 还没买呢 — same 呢 (ne)?",
+   a:"No. 眼镜呢? (yǎnjìng ne?) asks WHERE. 还没买呢 (hái méi mǎi ne) softens a statement (\u201cnot yet, you see\u201d). Context decides.",
+   ex:[{h:"牛奶呢?",p:"Niúnǎi ne?",en:"What about the milk? / Where is it?"},
+       {h:"还没买呢。",p:"Hái méi mǎi ne.",en:"Haven't bought it yet."}]},
+  {q:"刚 (gāng) vs 刚才 (gāngcái) — both \u201cjust now\u201d?",
+   a:"刚 (gāng) = adverb, sits right before the verb. 刚才 (gāngcái) = a time noun, can start the clause.",
+   ex:[{h:"刚做完",p:"gāng zuòwán",en:"just finished"},
+       {h:"刚才放在桌子上",p:"gāngcái fàng zài zhuōzi shang",en:"put it there a moment ago"}]},
+  {q:"着 in 睡着 (shuìzháo) — how is it read & what does it mean?",
+   a:"睡着 = shuì zháo. Here 着 (zháo) = the result \u201cmanage to.\u201d Different from 着 (zhe), the ongoing-action marker.",
+   ex:[{h:"睡着",p:"shuìzháo",en:"fall asleep (zháo = manage to)"},
+       {h:"站着",p:"zhànzhe",en:"(be) standing (zhe = ongoing)"}]},
+  {q:"买到 / 听懂 / 看见 — what's the 2nd character doing?",
+   a:"It's a resultative complement: it states the RESULT of the verb. Negate with 没 (méi).",
+   ex:[{h:"买到",p:"mǎidào",en:"managed to buy"},
+       {h:"没买到",p:"méi mǎidào",en:"didn't get it"}]}
+],dialogue:[
+  // 1 — In the living room
+  {num:1,sCn:"在客厅",sEn:"In the living room",who:"周明",whoEn:"Zhou Ming",
+   h:"我的眼镜呢？怎么突然找不到了？你看见了吗？",p:"Wǒ de yǎnjìng ne? Zěnme tūrán zhǎo bu dào le? Nǐ kànjiàn le ma?",en:"Where are my glasses? How did they suddenly disappear? Have you seen them?"},
+  {num:1,sCn:"在客厅",sEn:"In the living room",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"我没看见啊。",p:"Wǒ méi kànjiàn a.",en:"I haven't seen them."},
+  {num:1,sCn:"在客厅",sEn:"In the living room",who:"周明",whoEn:"Zhou Ming",
+   h:"我离不开眼镜，没有眼镜，我一个字也看不清楚。",p:"Wǒ lí bu kāi yǎnjìng, méiyǒu yǎnjìng, wǒ yí ge zì yě kàn bu qīngchu.",en:"I can't manage without my glasses — without them I can't read a single character clearly."},
+  {num:1,sCn:"在客厅",sEn:"In the living room",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"你去房间找找，是不是刚才放在桌子上了？",p:"Nǐ qù fángjiān zhǎozhao, shì bu shì gāngcái fàng zài zhuōzi shang le?",en:"Go look in the room — didn't you put them on the table just now?"},
+  {num:1,sCn:"在客厅",sEn:"In the living room",who:"周明",whoEn:"Zhou Ming",
+   h:"我怎么看得到啊？你快过来帮忙啊。",p:"Wǒ zěnme kàn de dào a? Nǐ kuài guòlai bāng máng a.",en:"How can I even see to look? Come over quick and help."},
+  {num:1,sCn:"在客厅",sEn:"In the living room",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"好吧，我帮你去找找。",p:"Hǎo ba, wǒ bāng nǐ qù zhǎozhao.",en:"Fine, I'll go help you look."},
+
+  // 2 — On the phone
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"同学",whoEn:"Classmate",
+   h:"今天的作业你做完了吗？",p:"Jīntiān de zuòyè nǐ zuòwán le ma?",en:"Have you finished today's homework?"},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"儿子",whoEn:"Son",
+   h:"刚做完，你呢？",p:"Gāng zuòwán, nǐ ne?",en:"Just finished. You?"},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"同学",whoEn:"Classmate",
+   h:"今天这些题特别难，我看不懂，不会做，你能帮我吗？",p:"Jīntiān zhèxiē tí tèbié nán, wǒ kàn bu dǒng, bú huì zuò, nǐ néng bāng wǒ ma?",en:"Today's problems are really hard — I can't make sense of them, can't do them. Can you help me?"},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"儿子",whoEn:"Son",
+   h:"电话里讲不明白，你来我家吧，我给你讲讲。",p:"Diànhuà li jiǎng bu míngbai, nǐ lái wǒ jiā ba, wǒ gěi nǐ jiǎngjiang.",en:"It can't be explained clearly on the phone — come to my place and I'll walk you through it."},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"同学",whoEn:"Classmate",
+   h:"好啊，我锻炼完了就过去。",p:"Hǎo a, wǒ duànliàn wánle jiù guòqu.",en:"Great — I'll come over as soon as I finish working out."},
+
+  // 3 — In the lounge
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"你怎么有点儿不高兴？",p:"Nǐ zěnme yǒudiǎnr bù gāoxìng?",en:"How come you seem a little down?"},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiao Gang",
+   h:"我想请小丽吃饭，但是找不到好饭馆。",p:"Wǒ xiǎng qǐng Xiǎolì chī fàn, dànshì zhǎo bu dào hǎo fànguǎn.",en:"I want to take Xiao Li to dinner, but I can't find a good restaurant."},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"那你请她听音乐会吧，她喜欢听音乐。",p:"Nà nǐ qǐng tā tīng yīnyuèhuì ba, tā xǐhuan tīng yīnyuè.",en:"Then invite her to a concert — she likes listening to music."},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiao Gang",
+   h:"音乐会人太多，买不到票。",p:"Yīnyuèhuì rén tài duō, mǎi bu dào piào.",en:"Concerts are too crowded — can't get tickets."},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"那去公园走走，聊聊天儿吧。",p:"Nà qù gōngyuán zǒuzou, liáoliao tiānr ba.",en:"Then go for a walk in the park and chat a bit."},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiao Gang",
+   h:"公园太大，多累啊。",p:"Gōngyuán tài dà, duō lèi a.",en:"The park's too big — so tiring."},
+
+  // 4 — In the living room
+  {num:4,sCn:"在客厅",sEn:"In the living room",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"你怎么还喝咖啡？",p:"Nǐ zěnme hái hē kāfēi?",en:"Why are you still drinking coffee?"},
+  {num:4,sCn:"在客厅",sEn:"In the living room",who:"周明",whoEn:"Zhou Ming",
+   h:"怎么了？",p:"Zěnme le?",en:"What's wrong?"},
+  {num:4,sCn:"在客厅",sEn:"In the living room",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"你不是说晚上睡不着觉吗？",p:"Nǐ bú shì shuō wǎnshang shuì bu zháo jiào ma?",en:"Didn't you say you can't fall asleep at night?"},
+  {num:4,sCn:"在客厅",sEn:"In the living room",who:"周明",whoEn:"Zhou Ming",
+   h:"没事，我只喝一杯。",p:"Méi shì, wǒ zhǐ hē yì bēi.",en:"It's fine, I'm only having one cup."},
+  {num:4,sCn:"在客厅",sEn:"In the living room",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"你还是喝杯牛奶吧，可以睡得更好些。",p:"Nǐ háishi hē bēi niúnǎi ba, kěyǐ shuì de gèng hǎo xiē.",en:"Better have a glass of milk instead — you'll sleep even better."},
+  {num:4,sCn:"在客厅",sEn:"In the living room",who:"周明",whoEn:"Zhou Ming",
+   h:"好吧，牛奶呢？",p:"Hǎo ba, niúnǎi ne?",en:"Okay — where's the milk?"},
+  {num:4,sCn:"在客厅",sEn:"In the living room",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"还没买呢。",p:"Hái méi mǎi ne.",en:"Haven't bought it yet."}
+]},
+{num:7,cn:"我跟她都认识五年了",en:"I've known her for five years",wm:"久",active:true,newWords:[
+  {h:"同事",p:"tóngshì",m:"colleague, coworker"},
+  {h:"以前",p:"yǐqián",m:"before, ago; previously"},
+  {h:"银行",p:"yínháng",m:"bank"},
+  {h:"久",p:"jiǔ",m:"long (in time)"},
+  {h:"感兴趣",p:"gǎn xìngqù",m:"to be interested (in)",note:"对 X 感兴趣 = interested in X"},
+  {h:"结婚",p:"jiéhūn",m:"to marry, get married"},
+  {h:"欢迎",p:"huānyíng",m:"to welcome"},
+  {h:"迟到",p:"chídào",m:"to be late, arrive late"},
+  {h:"半",p:"bàn",m:"half",note:"七点半 = 7:30"},
+  {h:"接",p:"jiē",m:"to meet / pick up (sb.); to receive",note:"接我 = pick me up"},
+  {h:"刻",p:"kè",m:"a quarter (of an hour)",note:"一刻 = 15 min · 三刻 = 45 min"},
+  {h:"差",p:"chà",m:"to fall short of; to lack",note:"差一刻八点 = 7:45 (a quarter to 8)"}
+],review:[
+  {h:"漂亮",p:"piàoliang",m:"pretty, good-looking"},
+  {h:"认识",p:"rènshi",m:"to know (sb.), be acquainted with"},
+  {h:"工作",p:"gōngzuò",m:"to work; job"},
+  {h:"公司",p:"gōngsī",m:"company"},
+  {h:"唱歌",p:"chànggē",m:"to sing (a song)"},
+  {h:"音乐会",p:"yīnyuèhuì",m:"concert"},
+  {h:"怎么办",p:"zěnme bàn",m:"what to do? / what now?"},
+  {h:"手表",p:"shǒubiǎo",m:"wristwatch"},
+  {h:"表",p:"biǎo",m:"watch, clock"},
+  {h:"多久",p:"duōjiǔ",m:"how long (duration)?",tag:"时间"},
+  {h:"小时",p:"xiǎoshí",m:"hour",tag:"时间"},
+  {h:"一刻钟",p:"yí kè zhōng",m:"a quarter of an hour (15 min)",tag:"时间"},
+  {h:"差一刻",p:"chà yí kè",m:"a quarter to (the hour)",tag:"时间"},
+  {h:"下个月",p:"xià ge yuè",m:"next month",tag:"时间"},
+  {h:"到时候",p:"dào shíhou",m:"when the time comes",tag:"时间"}
+],grammar:[
+  {q:"时段 (shíduàn) — how do you say how long an action lasts?",
+   a:"V + 了 (le) + duration (+ 了). A final 了 signals it's still going on.",
+   ex:[{h:"在北京工作三年了",p:"zài Běijīng gōngzuò sān nián le",en:"has worked in Beijing for 3 years (and still does)"}]},
+  {q:"Duration + an object — what's the word order?",
+   a:"Put the duration before the object (often repeating the verb): V + 了 (le) + duration + object.",
+   ex:[{h:"唱了两个小时歌",p:"chàngle liǎng ge xiǎoshí gē",en:"sang (songs) for two hours"}]},
+  {q:"对 … 感兴趣 (duì … gǎn xìngqù) — meaning & use?",
+   a:"To be interested IN something. 对 (duì) marks what you're interested in. Negate: 对…不感兴趣; intensify with 更 (gèng).",
+   ex:[{h:"我对她更感兴趣",p:"wǒ duì tā gèng gǎn xìngqù",en:"I'm even more interested in her"}]},
+  {q:"Clock time: 半 (bàn) and 刻 (kè)",
+   a:"半 (bàn) = half past (:30). 刻 (kè) = a quarter (15 min): 一刻 = :15, 三刻 = :45.",
+   ex:[{h:"七点半",p:"qī diǎn bàn",en:"7:30"},
+       {h:"七点一刻",p:"qī diǎn yí kè",en:"7:15"}]},
+  {q:"差 (chà) when telling time — what does it do?",
+   a:"差 (chà) = lacking / to. 差 + minutes + hour = that many minutes before the hour.",
+   ex:[{h:"差一刻八点",p:"chà yí kè bā diǎn",en:"a quarter to eight (7:45)"},
+       {h:"差五分十点",p:"chà wǔ fēn shí diǎn",en:"five to ten (9:55)"}]},
+  {q:"不是 … 吗? (bú shì … ma?) — why use it?",
+   a:"A rhetorical question that confirms or challenges (\u201cIsn't it…? / Didn't you…?\u201d). It expects agreement.",
+   ex:[{h:"你不是说七点半来吗?",p:"Nǐ bú shì shuō qī diǎn bàn lái ma?",en:"Didn't you say you'd come at 7:30?"}]}
+],dialogue:[
+  // 1 — In the office
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"同事",whoEn:"Colleague",
+   h:"那个漂亮的新同事是谁？",p:"Nàge piàoliang de xīn tóngshì shì shéi?",en:"Who's that pretty new coworker?"},
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"小刚",whoEn:"Xiao Gang",
+   h:"那是小丽。",p:"Nà shì Xiǎolì.",en:"That's Xiao Li."},
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"同事",whoEn:"Colleague",
+   h:"她刚来北京吗？",p:"Tā gāng lái Běijīng ma?",en:"Did she just arrive in Beijing?"},
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"小刚",whoEn:"Xiao Gang",
+   h:"不，她在北京工作三年了。",p:"Bù, tā zài Běijīng gōngzuò sān nián le.",en:"No, she's worked in Beijing for three years."},
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"同事",whoEn:"Colleague",
+   h:"以前她在哪儿工作？",p:"Yǐqián tā zài nǎr gōngzuò?",en:"Where did she work before?"},
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"小刚",whoEn:"Xiao Gang",
+   h:"她在银行工作了两年以后来的我们公司。",p:"Tā zài yínháng gōngzuòle liǎng nián yǐhòu lái de wǒmen gōngsī.",en:"She worked at a bank for two years, then joined our company."},
+
+  // 2 — In the lounge
+  {num:2,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"周末你跟小丽去哪儿玩儿了？",p:"Zhōumò nǐ gēn Xiǎolì qù nǎr wánr le?",en:"Where did you and Xiao Li go this weekend?"},
+  {num:2,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiao Gang",
+   h:"我们去唱歌了。",p:"Wǒmen qù chàng gē le.",en:"We went singing."},
+  {num:2,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"你们唱了多久？",p:"Nǐmen chàngle duō jiǔ?",en:"How long did you sing for?"},
+  {num:2,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiao Gang",
+   h:"我们唱了两个小时歌，晚上还去听音乐会了。",p:"Wǒmen chàngle liǎng ge xiǎoshí gē, wǎnshang hái qù tīng yīnyuèhuì le.",en:"We sang for two hours, and that evening also went to a concert."},
+  {num:2,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"你们都对音乐感兴趣吗？",p:"Nǐmen dōu duì yīnyuè gǎn xìngqù ma?",en:"Are you both into music?"},
+  {num:2,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiao Gang",
+   h:"她对音乐感兴趣，我对她更感兴趣。",p:"Tā duì yīnyuè gǎn xìngqù, wǒ duì tā gèng gǎn xìngqù.",en:"She's into music; I'm even more into her."},
+
+  // 3 — In the lounge
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiao Gang",
+   h:"我跟小丽下个月结婚，到时候欢迎你来。",p:"Wǒ gēn Xiǎolì xià ge yuè jié hūn, dào shíhou huānyíng nǐ lái.",en:"Xiao Li and I are getting married next month — you're welcome to come."},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"什么？结婚？",p:"Shénme? Jié hūn?",en:"What? Married?"},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiao Gang",
+   h:"对啊，突然吗？",p:"Duì a, tūrán ma?",en:"Yep — is it sudden?"},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"你们不是刚认识吗？",p:"Nǐmen bú shì gāng rènshi ma?",en:"Didn't you just meet?"},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiao Gang",
+   h:"我跟她都认识五年了。",p:"Wǒ gēn tā dōu rènshi wǔ nián le.",en:"I've known her for five years now."},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"你跟她结婚，那我怎么办啊？",p:"Nǐ gēn tā jié hūn, nà wǒ zěnme bàn a?",en:"If you marry her, then what about me?"},
+
+  // 4 — At the company entrance
+  {num:4,sCn:"在公司门口",sEn:"At the company entrance",who:"小丽",whoEn:"Xiao Li",
+   h:"你看看手表，怎么迟到了？",p:"Nǐ kànkan shǒubiǎo, zěnme chídào le?",en:"Check your watch — why are you late?"},
+  {num:4,sCn:"在公司门口",sEn:"At the company entrance",who:"小刚",whoEn:"Xiao Gang",
+   h:"没迟到啊。",p:"Méi chídào a.",en:"I'm not late."},
+  {num:4,sCn:"在公司门口",sEn:"At the company entrance",who:"小丽",whoEn:"Xiao Li",
+   h:"你不是说七点半来接我吗？你迟到了一刻钟。",p:"Nǐ bú shì shuō qī diǎn bàn lái jiē wǒ ma? Nǐ chídàole yí kè zhōng.",en:"Didn't you say you'd pick me up at 7:30? You're fifteen minutes late."},
+  {num:4,sCn:"在公司门口",sEn:"At the company entrance",who:"小刚",whoEn:"Xiao Gang",
+   h:"现在不是七点半吗？",p:"Xiànzài bú shì qī diǎn bàn ma?",en:"Isn't it 7:30 right now?"},
+  {num:4,sCn:"在公司门口",sEn:"At the company entrance",who:"小丽",whoEn:"Xiao Li",
+   h:"已经差一刻八点了！我都在这儿坐了半个小时了。",p:"Yǐjīng chà yí kè bā diǎn le! Wǒ dōu zài zhèr zuòle bàn ge xiǎoshí le.",en:"It's already a quarter to eight! I've been sitting here half an hour."},
+  {num:4,sCn:"在公司门口",sEn:"At the company entrance",who:"小刚",whoEn:"Xiao Gang",
+   h:"不是我迟到了，是你的表快了一刻钟。",p:"Bú shì wǒ chídào le, shì nǐ de biǎo kuàile yí kè zhōng.",en:"I'm not late — your watch is fifteen minutes fast."}
+]},
+{num:8,cn:"你去哪儿我就去哪儿",en:"I'll go wherever you go",wm:"哪",active:true,newWords:[
+  {h:"又",p:"yòu",m:"again (of a repeat that already happened)",note:"cf. 再 = again, for the future"},
+  {h:"满意",p:"mǎnyì",m:"to be satisfied, pleased"},
+  {h:"电梯",p:"diàntī",m:"elevator, lift"},
+  {h:"层",p:"céng",m:"floor / storey (measure word)",note:"二十层 = the 20th floor"},
+  {h:"害怕",p:"hàipà",m:"to be afraid, scared"},
+  {h:"熊猫",p:"xióngmāo",m:"panda"},
+  {h:"见面",p:"jiànmiàn",m:"to meet (face to face)"},
+  {h:"安静",p:"ānjìng",m:"quiet"},
+  {h:"可乐",p:"kělè",m:"cola, Coke"},
+  {h:"一会儿",p:"yíhuìr",m:"a moment, a little while",note:"等一会儿 = wait a moment"},
+  {h:"马上",p:"mǎshàng",m:"immediately, right away"},
+  {h:"洗手间",p:"xǐshǒujiān",m:"restroom, bathroom"},
+  {h:"老",p:"lǎo",m:"old"},
+  {h:"几乎",p:"jīhū",m:"almost, nearly",note:"几乎没… = hardly…"},
+  {h:"变化",p:"biànhuà",m:"to change; change"},
+  {h:"健康",p:"jiànkāng",m:"healthy; health"},
+  {h:"重要",p:"zhòngyào",m:"important"}
+],review:[
+  {h:"听说",p:"tīngshuō",m:"(I) hear that; it's said"},
+  {h:"打算",p:"dǎsuàn",m:"to plan (to)"},
+  {h:"方便",p:"fāngbiàn",m:"convenient"},
+  {h:"回国",p:"huí guó",m:"to return to one's home country"},
+  {h:"机场",p:"jīchǎng",m:"airport"},
+  {h:"送",p:"sòng",m:"to give (a gift); to see (sb.) off"},
+  {h:"希望",p:"xīwàng",m:"to hope"},
+  {h:"饮料",p:"yǐnliào",m:"beverage, drink"},
+  {h:"等",p:"děng",m:"to wait (for)"},
+  {h:"胖",p:"pàng",m:"fat, overweight"},
+  {h:"瘦",p:"shòu",m:"thin"},
+  {h:"穿",p:"chuān",m:"to wear, put on"},
+  {h:"再",p:"zài",m:"again (of a future action)",tag:"又/再"}
+],grammar:[
+  {q:"又 (yòu) vs 再 (zài) — both mean \u201cagain\u201d. What's the split?",
+   a:"又 (yòu) = a repeat that already happened (past). 再 (zài) = a repeat that hasn't happened yet (future / intended).",
+   ex:[{h:"今天又去了",p:"jīntiān yòu qù le",en:"went again today"},
+       {h:"明天再去",p:"míngtiān zài qù",en:"will go again tomorrow"}]},
+  {q:"你去哪儿我就去哪儿 — how does this pattern work?",
+   a:"A question word used twice = \u201cany / every\u201d. Same question word in both clauses, linked by 就 (jiù): wherever / whatever / however much.",
+   ex:[{h:"你坐哪儿我就坐哪儿",p:"nǐ zuò nǎr wǒ jiù zuò nǎr",en:"I'll sit wherever you sit"}]},
+  {q:"想 V 什么就 V 什么 (xiǎng … jiù …) — meaning?",
+   a:"\u201c(do) whatever you want to.\u201d The 想…就… (xiǎng…jiù…) frame + a repeated question word. Works with 什么 / 多少 / 哪儿…",
+   ex:[{h:"想吃多少就做多少",p:"xiǎng chī duōshao jiù zuò duōshao",en:"make as much as you want to eat"}]},
+  {q:"看了看 (kànle kàn) — what does the doubled verb with 了 do?",
+   a:"Verb reduplication = doing it briefly / casually. 看了看 = took a (quick) look. 了 (le) marks it completed.",
+   ex:[{h:"昨天去看了看",p:"zuótiān qù kànle kàn",en:"went and had a look yesterday"}]},
+  {q:"就要 … 了 (jiù yào … le) — what does it signal?",
+   a:"An imminent action: \u201cabout to / soon will.\u201d Often with a time word. Also 快…了 (kuài…le) = almost.",
+   ex:[{h:"下个星期就要回国了",p:"xià ge xīngqī jiù yào huí guó le",en:"about to go home next week"}]}
+],dialogue:[
+  // 1 — In the lounge
+  {num:1,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"听说你最近打算买房子？",p:"Tīngshuō nǐ zuìjìn dǎsuàn mǎi fángzi?",en:"I hear you're planning to buy a place lately?"},
+  {num:1,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiao Li",
+   h:"是，昨天去看了看，今天又去看了看，明天还要再去看看。",p:"Shì, zuótiān qù kànle kàn, jīntiān yòu qù kànle kàn, míngtiān hái yào zài qù kànkan.",en:"Yeah — looked yesterday, looked again today, and I'll go look again tomorrow."},
+  {num:1,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"都不满意吗？",p:"Dōu bù mǎnyì ma?",en:"You're not happy with any of them?"},
+  {num:1,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiao Li",
+   h:"一个没有电梯，不方便。一个有电梯，但是在二十层。",p:"Yí ge méiyǒu diàntī, bù fāngbiàn. Yí ge yǒu diàntī, dànshì zài èrshí céng.",en:"One has no elevator — inconvenient. One has an elevator, but it's on the 20th floor."},
+  {num:1,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"二十层怎么了？",p:"Èrshí céng zěnme le?",en:"What's wrong with the 20th floor?"},
+  {num:1,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiao Li",
+   h:"太高了，往下看多害怕啊！",p:"Tài gāo le, wǎng xià kàn duō hài pà a!",en:"Too high — looking down is so scary!"},
+
+  // 2 — At school
+  {num:2,sCn:"在学校",sEn:"At school",who:"小明",whoEn:"Xiao Ming",
+   h:"听说你下个星期就要回国了？",p:"Tīngshuō nǐ xià ge xīngqī jiù yào huí guó le?",en:"I hear you're heading home next week?"},
+  {num:2,sCn:"在学校",sEn:"At school",who:"马可",whoEn:"Mark",
+   h:"是啊，真不想离开北京。",p:"Shì a, zhēn bù xiǎng líkāi Běijīng.",en:"Yeah — I really don't want to leave Beijing."},
+  {num:2,sCn:"在学校",sEn:"At school",who:"小明",whoEn:"Xiao Ming",
+   h:"我下星期不在北京，不能去机场送你了。",p:"Wǒ xià xīngqī bú zài Běijīng, bù néng qù jīchǎng sòng nǐ le.",en:"I won't be in Beijing next week, so I can't see you off at the airport."},
+  {num:2,sCn:"在学校",sEn:"At school",who:"马可",whoEn:"Mark",
+   h:"没关系，你忙吧。",p:"Méi guānxi, nǐ máng ba.",en:"No worries — you go be busy."},
+  {num:2,sCn:"在学校",sEn:"At school",who:"小明",whoEn:"Xiao Ming",
+   h:"这个小熊猫送给你，欢迎你以后再到中国来。",p:"Zhège xiǎo xióngmāo sòng gěi nǐ, huānyíng nǐ yǐhòu zài dào Zhōngguó lái.",en:"This little panda is for you — come back to China again sometime."},
+  {num:2,sCn:"在学校",sEn:"At school",who:"马可",whoEn:"Mark",
+   h:"谢谢。希望以后能再见面。",p:"Xièxie. Xīwàng yǐhòu néng zài jiàn miàn.",en:"Thanks. I hope we can meet again someday."},
+
+  // 3 — In a coffee house
+  {num:3,sCn:"在咖啡厅",sEn:"In a coffee house",who:"小丽",whoEn:"Xiao Li",
+   h:"小刚，我们坐哪儿？",p:"Xiǎogāng, wǒmen zuò nǎr?",en:"Xiao Gang, where should we sit?"},
+  {num:3,sCn:"在咖啡厅",sEn:"In a coffee house",who:"小刚",whoEn:"Xiao Gang",
+   h:"你坐哪儿我就坐哪儿。",p:"Nǐ zuò nǎr wǒ jiù zuò nǎr.",en:"I'll sit wherever you sit."},
+  {num:3,sCn:"在咖啡厅",sEn:"In a coffee house",who:"小丽",whoEn:"Xiao Li",
+   h:"坐这儿吧，这儿安静。你想喝什么饮料？",p:"Zuò zhèr ba, zhèr ānjìng. Nǐ xiǎng hē shénme yǐnliào?",en:"Let's sit here, it's quiet. What would you like to drink?"},
+  {num:3,sCn:"在咖啡厅",sEn:"In a coffee house",who:"小刚",whoEn:"Xiao Gang",
+   h:"你喝什么我就喝什么。",p:"Nǐ hē shénme wǒ jiù hē shénme.",en:"I'll drink whatever you drink."},
+  {num:3,sCn:"在咖啡厅",sEn:"In a coffee house",who:"小丽",whoEn:"Xiao Li",
+   h:"喝可乐吧。你等我一会儿，我马上回来。",p:"Hē kělè ba. Nǐ děng wǒ yíhuìr, wǒ mǎshàng huílai.",en:"Let's get cola. Wait for me a moment — I'll be right back."},
+  {num:3,sCn:"在咖啡厅",sEn:"In a coffee house",who:"小刚",whoEn:"Xiao Gang",
+   h:"小丽，你去哪儿？你去哪儿我就去哪儿。",p:"Xiǎolì, nǐ qù nǎr? Nǐ qù nǎr wǒ jiù qù nǎr.",en:"Xiao Li, where are you going? Wherever you go, I'll go."},
+  {num:3,sCn:"在咖啡厅",sEn:"In a coffee house",who:"小丽",whoEn:"Xiao Li",
+   h:"我去洗手间。",p:"Wǒ qù xǐshǒujiān.",en:"I'm going to the restroom."},
+
+  // 4 — At Zhou Ming's home
+  {num:4,sCn:"在周明家",sEn:"At Zhou Ming's home",who:"老同学",whoEn:"Old classmate",
+   h:"快五年了，你几乎没变化。",p:"Kuài wǔ nián le, nǐ jīhū méi biànhuà.",en:"It's been almost five years — you've hardly changed."},
+  {num:4,sCn:"在周明家",sEn:"At Zhou Ming's home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"谁说的？我胖了，以前的衣服都不能穿了。",p:"Shéi shuō de? Wǒ pàng le, yǐqián de yīfu dōu bù néng chuān le.",en:"Says who? I've put on weight — none of my old clothes fit anymore."},
+  {num:4,sCn:"在周明家",sEn:"At Zhou Ming's home",who:"老同学",whoEn:"Old classmate",
+   h:"健康最重要，胖瘦没关系。",p:"Jiànkāng zuì zhòngyào, pàng shòu méi guānxi.",en:"Health matters most — fat or thin doesn't matter."},
+  {num:4,sCn:"在周明家",sEn:"At Zhou Ming's home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"是呀，想吃什么就吃什么。",p:"Shì a, xiǎng chī shénme jiù chī shénme.",en:"True — eat whatever you want."},
+  {num:4,sCn:"在周明家",sEn:"At Zhou Ming's home",who:"老同学",whoEn:"Old classmate",
+   h:"你做饭还是周明做饭？",p:"Nǐ zuò fàn háishi Zhōu Míng zuò fàn?",en:"Do you cook, or does Zhou Ming?"},
+  {num:4,sCn:"在周明家",sEn:"At Zhou Ming's home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"我做，我想吃什么就做什么，想吃多少就做多少。",p:"Wǒ zuò, wǒ xiǎng chī shénme jiù zuò shénme, xiǎng chī duōshao jiù zuò duōshao.",en:"I do — I make whatever I want, and however much I want to eat."}
+]},
+{num:9,cn:"她的汉语说得跟中国人一样好",en:"She speaks Chinese like a native",wm:"语",active:true,newWords:[
+  {h:"中文",p:"Zhōngwén",m:"the Chinese language"},
+  {h:"班",p:"bān",m:"class"},
+  {h:"一样",p:"yíyàng",m:"same; as … as …"},
+  {h:"最后",p:"zuìhòu",m:"the last; final"},
+  {h:"放心",p:"fàngxīn",m:"to rest assured, set one's mind at ease"},
+  {h:"一定",p:"yídìng",m:"definitely, certainly"},
+  {h:"担心",p:"dānxīn",m:"to worry"},
+  {h:"比较",p:"bǐjiào",m:"fairly, rather; to compare"},
+  {h:"了解",p:"liǎojiě",m:"to know / understand well"},
+  {h:"先",p:"xiān",m:"first, in advance"},
+  {h:"中间",p:"zhōngjiān",m:"middle"},
+  {h:"参加",p:"cānjiā",m:"to participate, take part in"},
+  {h:"影响",p:"yǐngxiǎng",m:"influence; to affect"}
+],review:[
+  {h:"哪里哪里",p:"nǎli nǎli",m:"not at all (modest reply)"},
+  {h:"听说",p:"tīngshuō",m:"to hear (it said)"},
+  {h:"名字",p:"míngzi",m:"name"},
+  {h:"蛋糕",p:"dàngāo",m:"cake"},
+  {h:"块",p:"kuài",m:"piece (measure word)"},
+  {h:"甜",p:"tián",m:"sweet"},
+  {h:"瘦",p:"shòu",m:"thin, skinny"},
+  {h:"变",p:"biàn",m:"to change, become"},
+  {h:"害怕",p:"hàipà",m:"to be afraid"},
+  {h:"爬",p:"pá",m:"to climb"},
+  {h:"休息",p:"xiūxi",m:"to rest"},
+  {h:"一会儿",p:"yíhuìr",m:"a (little) while"},
+  {h:"医院",p:"yīyuàn",m:"hospital"},
+  {h:"医生",p:"yīshēng",m:"doctor"},
+  {h:"篮球",p:"lánqiú",m:"basketball"},
+  {h:"比赛",p:"bǐsài",m:"match, competition"},
+  {h:"脚",p:"jiǎo",m:"foot"},
+  {h:"疼",p:"téng",m:"to ache, hurt"},
+  {h:"大熊猫",p:"dàxióngmāo",m:"giant panda"}
+],grammar:[
+  {q:"跟 … 一样 (gēn … yíyàng) — how do you say \u201cthe same as\u201d?",
+   a:"A 跟 B 一样 (+ adj) = A is the same as B. Negate with 跟…不一样 (gēn…bù yíyàng).",
+   ex:[{h:"她的汉语跟中国人一样好",p:"tā de Hànyǔ gēn Zhōngguórén yíyàng hǎo",en:"her Chinese is as good as a native's"},
+       {h:"我跟你一样高",p:"wǒ gēn nǐ yíyàng gāo",en:"I'm as tall as you"}]},
+  {q:"越 … 越 … (yuè … yuè …) — meaning?",
+   a:"\u201cThe more … the more …\u201d — one subject, two linked changes (verb/adj).",
+   ex:[{h:"越吃越胖",p:"yuè chī yuè pàng",en:"the more you eat, the fatter you get"},
+       {h:"山越高，路越难走",p:"shān yuè gāo, lù yuè nán zǒu",en:"the higher the mountain, the harder the road"}]},
+  {q:"越来越 … (yuè lái yuè …) — how does it differ from 越…越…?",
+   a:"越来越 + adj = \u201cmore and more\u201d over time, no second clause needed. 越…越… links two parts.",
+   ex:[{h:"天气越来越冷",p:"tiānqì yuè lái yuè lěng",en:"the weather is getting colder and colder"},
+       {h:"你的中文越说越好",p:"nǐ de Zhōngwén yuè shuō yuè hǎo",en:"your Chinese gets better the more you speak"}]},
+  {q:"一点儿 … 也/都 没有 — what does it emphasize?",
+   a:"Emphatic negation: \u201cnot the slightest …\u201d. 一点儿 + noun + 也/都 + negative.",
+   ex:[{h:"一点儿影响也没有",p:"yìdiǎnr yǐngxiǎng yě méiyǒu",en:"not the slightest influence"},
+       {h:"一点儿都不累",p:"yìdiǎnr dōu bú lèi",en:"not tired at all"}]}
+],dialogue:[
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"大山",whoEn:"Dashan",
+   h:"马可，你的中文越说越好了！",p:"Mǎkě, nǐ de Zhōngwén yuè shuō yuè hǎo le!",en:"Mark, your Chinese gets better the more you speak it!"},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"马可",whoEn:"Mark",
+   h:"哪里哪里，我们班王静说得更好。",p:"Nǎli nǎli, wǒmen bān Wáng Jìng shuō de gèng hǎo.",en:"You flatter me — Wang Jing in our class speaks even better."},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"大山",whoEn:"Dashan",
+   h:"怎么好？",p:"Zěnme hǎo?",en:"How so?"},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"马可",whoEn:"Mark",
+   h:"她的汉语说得跟中国人一样好。",p:"Tā de Hànyǔ shuō de gēn Zhōngguórén yíyàng hǎo.",en:"She speaks Chinese as well as a native."},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"大山",whoEn:"Dashan",
+   h:"王静？我怎么没听说过这个名字？",p:"Wáng Jìng? Wǒ zěnme méi tīngshuōguo zhège míngzi?",en:"Wang Jing? How come I've never heard that name?"},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"马可",whoEn:"Mark",
+   h:"她是我们的汉语老师。",p:"Tā shì wǒmen de Hànyǔ lǎoshī.",en:"She's our Chinese teacher."},
+
+  {num:2,sCn:"在蛋糕店",sEn:"In a bakery",who:"小丽",whoEn:"Xiaoli",
+   h:"别吃了，你已经吃了三块蛋糕了。",p:"Bié chī le, nǐ yǐjīng chīle sān kuài dàngāo le.",en:"Stop eating — you've already had three pieces of cake."},
+  {num:2,sCn:"在蛋糕店",sEn:"In a bakery",who:"小刚",whoEn:"Xiaogang",
+   h:"这是最后一块。",p:"Zhè shì zuìhòu yíkuài.",en:"This is the last piece."},
+  {num:2,sCn:"在蛋糕店",sEn:"In a bakery",who:"小丽",whoEn:"Xiaoli",
+   h:"你总是吃甜的东西，会越吃越胖。",p:"Nǐ zǒngshì chī tián de dōngxi, huì yuè chī yuè pàng.",en:"You always eat sweet things — you'll get fatter and fatter."},
+  {num:2,sCn:"在蛋糕店",sEn:"In a bakery",who:"小刚",whoEn:"Xiaogang",
+   h:"你放心，我一定不会变胖。",p:"Nǐ fàng xīn, wǒ yídìng bú huì biàn pàng.",en:"Don't worry, I definitely won't get fat."},
+  {num:2,sCn:"在蛋糕店",sEn:"In a bakery",who:"小丽",whoEn:"Xiaoli",
+   h:"为什么？",p:"Wèi shénme?",en:"Why?"},
+  {num:2,sCn:"在蛋糕店",sEn:"In a bakery",who:"小刚",whoEn:"Xiaogang",
+   h:"我们家的人都很瘦，吃不胖。",p:"Wǒmen jiā de rén dōu hěn shòu, chī bú pàng.",en:"Everyone in my family is thin — we can't get fat."},
+
+  {num:3,sCn:"在山上",sEn:"On the mountain",who:"小丽",whoEn:"Xiaoli",
+   h:"我有点儿害怕。",p:"Wǒ yǒudiǎnr hàipà.",en:"I'm a little scared."},
+  {num:3,sCn:"在山上",sEn:"On the mountain",who:"小刚",whoEn:"Xiaogang",
+   h:"怎么了？",p:"Zěnme le?",en:"What's wrong?"},
+  {num:3,sCn:"在山上",sEn:"On the mountain",who:"小丽",whoEn:"Xiaoli",
+   h:"山越高，路越难走。我也越爬越冷。",p:"Shān yuè gāo, lù yuè nán zǒu. Wǒ yě yuè pá yuè lěng.",en:"The higher the mountain, the harder the path — and the colder I get as I climb."},
+  {num:3,sCn:"在山上",sEn:"On the mountain",who:"小刚",whoEn:"Xiaogang",
+   h:"不用担心，有我呢，我对这儿比较了解。",p:"Bú yòng dān xīn, yǒu wǒ ne, wǒ duì zhèr bǐjiào liǎojiě.",en:"No need to worry — I'm here, and I know this place fairly well."},
+  {num:3,sCn:"在山上",sEn:"On the mountain",who:"小丽",whoEn:"Xiaoli",
+   h:"那我们先休息一下，一会儿再爬。",p:"Nà wǒmen xiān xiūxi yíxià, yíhuìr zài pá.",en:"Then let's rest first and climb again in a bit."},
+  {num:3,sCn:"在山上",sEn:"On the mountain",who:"小刚",whoEn:"Xiaogang",
+   h:"好，一会儿我们可以从中间这条路上去。",p:"Hǎo, yíhuìr wǒmen kěyǐ cóng zhōngjiān zhè tiáo lù shàngqu.",en:"Okay — in a bit we can go up by this middle path."},
+
+  {num:4,sCn:"在小明家",sEn:"At Xiaoming's home",who:"同学",whoEn:"Classmate",
+   h:"小明，你的眼睛怎么跟大熊猫一样了？",p:"Xiǎomíng, nǐ de yǎnjing zěnme gēn dà xióngmāo yíyàng le?",en:"Xiaoming, how did your eyes end up like a panda's?"},
+  {num:4,sCn:"在小明家",sEn:"At Xiaoming's home",who:"小明",whoEn:"Xiaoming",
+   h:"我这几天脚疼，没休息好。",p:"Wǒ zhè jǐ tiān jiǎo téng, méi xiūxi hǎo.",en:"My foot's been hurting these past few days — I haven't rested well."},
+  {num:4,sCn:"在小明家",sEn:"At Xiaoming's home",who:"同学",whoEn:"Classmate",
+   h:"去医院了吗？医生说什么？",p:"Qù yīyuàn le ma? Yīshēng shuō shénme?",en:"Did you go to the hospital? What did the doctor say?"},
+  {num:4,sCn:"在小明家",sEn:"At Xiaoming's home",who:"小明",whoEn:"Xiaoming",
+   h:"他让我多休息。休息得越多，好得越快。",p:"Tā ràng wǒ duō xiūxi. Xiūxi de yuè duō, hǎo de yuè kuài.",en:"He told me to rest more — the more I rest, the faster I recover."},
+  {num:4,sCn:"在小明家",sEn:"At Xiaoming's home",who:"同学",whoEn:"Classmate",
+   h:"下个月的篮球比赛，你能参加吗？",p:"Xià ge yuè de lánqiú bǐsài, nǐ néng cānjiā ma?",en:"Can you take part in next month's basketball match?"},
+  {num:4,sCn:"在小明家",sEn:"At Xiaoming's home",who:"小明",whoEn:"Xiaoming",
+   h:"一定能参加，一点儿影响也没有。",p:"Yídìng néng cānjiā, yìdiǎnr yǐngxiǎng yě méiyǒu.",en:"I'll definitely play — it won't affect me in the slightest."}
+]},
+{num:10,cn:"数学比历史难多了",en:"Maths is much harder than history",wm:"比",active:true,newWords:[
+  {h:"个子",p:"gèzi",m:"height, stature"},
+  {h:"矮",p:"ǎi",m:"short (in height)"},
+  {h:"历史",p:"lìshǐ",m:"history"},
+  {h:"体育",p:"tǐyù",m:"P.E., sports"},
+  {h:"数学",p:"shùxué",m:"maths"},
+  {h:"方便",p:"fāngbiàn",m:"convenient"},
+  {h:"自行车",p:"zìxíngchē",m:"bicycle"},
+  {h:"骑",p:"qí",m:"to ride"},
+  {h:"旧",p:"jiù",m:"old, used, worn"},
+  {h:"换",p:"huàn",m:"to change, substitute"},
+  {h:"地方",p:"dìfang",m:"place"},
+  {h:"中介",p:"zhōngjiè",m:"agent, intermediary"},
+  {h:"主要",p:"zhǔyào",m:"main"},
+  {h:"环境",p:"huánjìng",m:"environment"},
+  {h:"附近",p:"fùjìn",m:"nearby, vicinity"}
+],review:[
+  {h:"谁",p:"shéi",m:"who"},
+  {h:"岁",p:"suì",m:"years (of age)"},
+  {h:"大",p:"dà",m:"big; older (in age)"},
+  {h:"课",p:"kè",m:"class, lesson"},
+  {h:"有意思",p:"yǒu yìsi",m:"interesting"},
+  {h:"觉得",p:"juéde",m:"to feel, think"},
+  {h:"难",p:"nán",m:"difficult"},
+  {h:"每天",p:"měi tiān",m:"every day"},
+  {h:"小时",p:"xiǎoshí",m:"hour"},
+  {h:"最近",p:"zuìjìn",m:"recently"},
+  {h:"以前",p:"yǐqián",m:"before, previously"},
+  {h:"搬家",p:"bānjiā",m:"to move house"},
+  {h:"走路",p:"zǒulù",m:"to walk, go on foot"},
+  {h:"分钟",p:"fēnzhōng",m:"minute"},
+  {h:"打算",p:"dǎsuàn",m:"to plan, intend"},
+  {h:"辆",p:"liàng",m:"(measure word for vehicles)"},
+  {h:"便宜",p:"piányi",m:"cheap"},
+  {h:"安静",p:"ānjìng",m:"quiet"},
+  {h:"车站",p:"chēzhàn",m:"(bus) stop, station"}
+],grammar:[
+  {q:"A 比 B + adj (bǐ) — the basic comparison",
+   a:"比 (bǐ) compares two things: A 比 B + adjective = A is more (adj) than B. Don't add 很 to the adjective.",
+   ex:[{h:"马可比我高",p:"Mǎkě bǐ wǒ gāo",en:"Mark is taller than me"},
+       {h:"我比他大两岁",p:"wǒ bǐ tā dà liǎng suì",en:"I'm two years older than him"}]},
+  {q:"How do you show the DEGREE of difference in a 比 sentence?",
+   a:"Put the amount after the adjective: 一点儿 / 一些 = a bit; 多了 / 得多 = much more.",
+   ex:[{h:"我比马可矮一点儿",p:"wǒ bǐ Mǎkě ǎi yìdiǎnr",en:"I'm a bit shorter than Mark"},
+       {h:"数学比历史难多了",p:"shùxué bǐ lìshǐ nán duō le",en:"maths is much harder than history"}]},
+  {q:"A 没有 B (那么) + adj — what does it mean?",
+   a:"\u201cA is not as (adj) as B.\u201d The negative counterpart of 比. 那么 (nàme) is optional.",
+   ex:[{h:"我的汉语没有他好",p:"wǒ de Hànyǔ méiyǒu tā hǎo",en:"my Chinese isn't as good as his"},
+       {h:"里边没有外边那么安静",p:"lǐbian méiyǒu wàibian nàme ānjìng",en:"inside isn't as quiet as outside"}]},
+  {q:"比 with a verb: A 比 B + V 得 + adj",
+   a:"To compare how an action is done, put 比 before the verb's degree complement (V 得 …).",
+   ex:[{h:"马可比我说得好一些",p:"Mǎkě bǐ wǒ shuō de hǎo yìxiē",en:"Mark speaks a bit better than me"},
+       {h:"他比我来得早",p:"tā bǐ wǒ lái de zǎo",en:"he comes earlier than me"}]}
+],dialogue:[
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"朋友",whoEn:"Friend",
+   h:"大山，你和马可谁个子高？",p:"Dàshān, nǐ hé Mǎkě shéi gèzi gāo?",en:"Dashan, who's taller, you or Mark?"},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"大山",whoEn:"Dashan",
+   h:"马可比我高，我比马可矮一点儿。",p:"Mǎkě bǐ wǒ gāo, wǒ bǐ Mǎkě ǎi yìdiǎnr.",en:"Mark is taller than me; I'm a bit shorter than him."},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"朋友",whoEn:"Friend",
+   h:"那你们谁大？",p:"Nà nǐmen shéi dà?",en:"Then who's older?"},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"大山",whoEn:"Dashan",
+   h:"我比马可大两岁。",p:"Wǒ bǐ Mǎkě dà liǎng suì.",en:"I'm two years older than Mark."},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"朋友",whoEn:"Friend",
+   h:"你们谁的汉语说得更好？",p:"Nǐmen shéi de Hànyǔ shuō de gèng hǎo?",en:"Whose Chinese is better?"},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"大山",whoEn:"Dashan",
+   h:"马可比我说得好一些，我的汉语没有他好。",p:"Mǎkě bǐ wǒ shuō de hǎo yìxiē, wǒ de Hànyǔ méiyǒu tā hǎo.",en:"Mark speaks a bit better; my Chinese isn't as good as his."},
+
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"我喜欢历史课、体育课，不喜欢数学课。",p:"Wǒ xǐhuan lìshǐ kè, tǐyù kè, bù xǐhuan shùxué kè.",en:"I like history and P.E., but not maths."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"同学",whoEn:"Classmate",
+   h:"为什么？数学也很有意思啊。",p:"Wèi shénme? Shùxué yě hěn yǒu yìsi a.",en:"Why? Maths is interesting too."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"我觉得数学比历史难多了，我听不懂。",p:"Wǒ juéde shùxué bǐ lìshǐ nán duō le, wǒ tīng bu dǒng.",en:"I think maths is much harder than history — I can't follow it."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"同学",whoEn:"Classmate",
+   h:"别担心，我可以帮你。",p:"Bié dān xīn, wǒ kěyǐ bāng nǐ.",en:"Don't worry, I can help you."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"好啊，我们每天学多长时间？",p:"Hǎo a, wǒmen měi tiān xué duō cháng shíjiān?",en:"Great — how long shall we study each day?"},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"同学",whoEn:"Classmate",
+   h:"一两个小时吧。",p:"Yì-liǎng ge xiǎoshí ba.",en:"An hour or two."},
+
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"你最近比以前来得早多了，搬家了？",p:"Nǐ zuìjìn bǐ yǐqián lái de zǎo duō le, bān jiā le?",en:"You've been coming in much earlier than before — did you move?"},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiaoli",
+   h:"是啊，你不知道？我上个月就搬家了，走路二十分钟就到。",p:"Shì a, nǐ bù zhīdào? Wǒ shàng ge yuè jiù bān jiā le, zǒu lù èrshí fēnzhōng jiù dào.",en:"Yes — didn't you know? I moved last month; it's a 20-minute walk."},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"那很方便啊。",p:"Nà hěn fāngbiàn a.",en:"That's really convenient."},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiaoli",
+   h:"我还打算买辆自行车，骑车七八分钟就能到。",p:"Wǒ hái dǎsuàn mǎi liàng zìxíngchē, qí chē qī-bā fēnzhōng jiù néng dào.",en:"I'm also planning to buy a bike — then it'd be a 7–8 minute ride."},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"你不是有一辆吗？",p:"Nǐ bú shì yǒu yí liàng ma?",en:"Don't you already have one?"},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiaoli",
+   h:"那辆太旧了，要换一辆，很便宜，两三百块钱。",p:"Nà liàng tài jiù le, yào huàn yí liàng, hěn piányi, liǎng-sān bǎi kuài qián.",en:"That one's too old; I want to swap it — they're cheap, two or three hundred yuan."},
+
+  {num:4,sCn:"在看房子",sEn:"Seeing an apartment",who:"大山",whoEn:"Dashan",
+   h:"这两个地方的房子一样吗？",p:"Zhè liǎng ge dìfang de fángzi yíyàng ma?",en:"Are the apartments in these two places the same?"},
+  {num:4,sCn:"在看房子",sEn:"Seeing an apartment",who:"中介",whoEn:"Agent",
+   h:"不一样。您看，学校外边的房子比学校里边的大一些。",p:"Bù yíyàng. Nín kàn, xuéxiào wàibian de fángzi bǐ xuéxiào lǐbian de dà yìxiē.",en:"No. Look — the ones outside the school are a bit bigger than those inside."},
+  {num:4,sCn:"在看房子",sEn:"Seeing an apartment",who:"大山",whoEn:"Dashan",
+   h:"大小没关系，主要是环境，哪个更安静？",p:"Dàxiǎo méi guānxi, zhǔyào shì huánjìng, nǎge gèng ānjìng?",en:"Size doesn't matter — the main thing is the setting. Which is quieter?"},
+  {num:4,sCn:"在看房子",sEn:"Seeing an apartment",who:"中介",whoEn:"Agent",
+   h:"学校里边的没有学校外边的那么安静。",p:"Xuéxiào lǐbian de méiyǒu xuéxiào wàibian de nàme ānjìng.",en:"The ones inside aren't as quiet as those outside."},
+  {num:4,sCn:"在看房子",sEn:"Seeing an apartment",who:"大山",whoEn:"Dashan",
+   h:"哪个方便一些呢？",p:"Nǎge fāngbiàn yìxiē ne?",en:"Which is a bit more convenient?"},
+  {num:4,sCn:"在看房子",sEn:"Seeing an apartment",who:"中介",whoEn:"Agent",
+   h:"学校里边比学校外边方便，附近有三四个车站。",p:"Xuéxiào lǐbian bǐ xuéxiào wàibian fāngbiàn, fùjìn yǒu sān-sì ge chēzhàn.",en:"Inside the school is more convenient than outside — there are three or four stops nearby."}
+]},
+{num:11,cn:"别忘了把空调关了",en:"Don't forget to turn off the air conditioner",wm:"关",active:true,newWords:[
+  {h:"图书馆",p:"túshūguǎn",m:"library"},
+  {h:"借",p:"jiè",m:"to borrow; to lend"},
+  {h:"词典",p:"cídiǎn",m:"dictionary"},
+  {h:"还",p:"huán",m:"to return (something)"},
+  {h:"灯",p:"dēng",m:"light, lamp"},
+  {h:"会议",p:"huìyì",m:"meeting, conference"},
+  {h:"结束",p:"jiéshù",m:"to end, finish"},
+  {h:"忘记",p:"wàngjì",m:"to forget"},
+  {h:"空调",p:"kōngtiáo",m:"air conditioner"},
+  {h:"关",p:"guān",m:"to turn off; to close"},
+  {h:"地铁",p:"dìtiě",m:"subway"},
+  {h:"双",p:"shuāng",m:"(measure word) pair"},
+  {h:"筷子",p:"kuàizi",m:"chopsticks"},
+  {h:"啤酒",p:"píjiǔ",m:"beer"},
+  {h:"口",p:"kǒu",m:"(measure word) mouthful"},
+  {h:"瓶子",p:"píngzi",m:"bottle"},
+  {h:"笔记本（电脑）",p:"bǐjìběn (diànnǎo)",m:"notebook, laptop"},
+  {h:"电子邮件",p:"diànzǐ yóujiàn",m:"e-mail"},
+  {h:"习惯",p:"xíguàn",m:"to be used to; habit"}
+],review:[
+  {h:"写信",p:"xiě xìn",m:"to write a letter"},
+  {h:"本",p:"běn",m:"(measure word for books)"},
+  {h:"书",p:"shū",m:"book"},
+  {h:"记得",p:"jìde",m:"to remember"},
+  {h:"经理",p:"jīnglǐ",m:"manager"},
+  {h:"已经",p:"yǐjīng",m:"already"},
+  {h:"公司",p:"gōngsī",m:"company"},
+  {h:"告诉",p:"gàosu",m:"to tell"},
+  {h:"差",p:"chà",m:"to lack, be short of"},
+  {h:"菜",p:"cài",m:"dish, food"},
+  {h:"爸爸",p:"bàba",m:"dad"},
+  {h:"生日",p:"shēngrì",m:"birthday"},
+  {h:"酒",p:"jiǔ",m:"alcohol, wine"},
+  {h:"卖",p:"mài",m:"to sell"},
+  {h:"电脑",p:"diànnǎo",m:"computer"},
+  {h:"打开",p:"dǎkāi",m:"to open, turn on"},
+  {h:"笔",p:"bǐ",m:"pen"},
+  {h:"起床",p:"qǐchuáng",m:"to get up"}
+],grammar:[
+  {q:"The 把 sentence (把字句) — structure & purpose",
+   a:"把 (bǎ) pulls a specific object before the verb to focus on what is DONE to it. Subj + 把 + Object + Verb + extra. The verb can't stand bare — add 了 or a complement.",
+   ex:[{h:"把灯关了",p:"bǎ dēng guān le",en:"turn off the light"},
+       {h:"别忘记把空调关了",p:"bié wàngjì bǎ kōngtiáo guān le",en:"don't forget to turn off the AC"}]},
+  {q:"What must follow the verb in a 把 sentence?",
+   a:"A 把 sentence needs a result after the verb — 了, a complement, or 一下 — never a bare verb alone.",
+   ex:[{h:"把这本词典还了",p:"bǎ zhè běn cídiǎn huán le",en:"return this dictionary"},
+       {h:"把这个电脑卖了",p:"bǎ zhège diànnǎo mài le",en:"sell this computer"}]},
+  {q:"左右 (zuǒyòu) — how do you say \u201cabout / around\u201d?",
+   a:"Put 左右 after a number, time, or amount to make it approximate.",
+   ex:[{h:"五千块左右",p:"wǔ qiān kuài zuǒyòu",en:"about 5,000 yuan"},
+       {h:"两点左右",p:"liǎng diǎn zuǒyòu",en:"around two o'clock"}]},
+  {q:"一 + measure + 都/也 + 不/没 — what does it express?",
+   a:"Emphatic \u201cnot even one …\u201d: 一 + measure word (+ noun) + 都/也 + a negative.",
+   ex:[{h:"一口酒都不能喝",p:"yì kǒu jiǔ dōu bù néng hē",en:"can't drink even a sip of alcohol"},
+       {h:"一个人也没有",p:"yí ge rén yě méiyǒu",en:"not a single person"}]}
+],dialogue:[
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"我先走了。",p:"Wǒ xiān zǒu le.",en:"I'm heading off now."},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"同学",whoEn:"Classmate",
+   h:"你去哪儿？",p:"Nǐ qù nǎr?",en:"Where are you going?"},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"我去图书馆借本书。",p:"Wǒ qù túshūguǎn jiè běn shū.",en:"I'm going to the library to borrow a book."},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"同学",whoEn:"Classmate",
+   h:"帮我把这本词典还了吧。",p:"Bāng wǒ bǎ zhè běn cídiǎn huánle ba.",en:"Return this dictionary for me, would you?"},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"好，等一会儿你离开教室的时候，记得把灯关了。",p:"Hǎo, děng yíhuìr nǐ lí kāi jiàoshì de shíhou, jìde bǎ dēng guān le.",en:"Sure — and when you leave the classroom later, remember to turn off the light."},
+  {num:1,sCn:"在教室",sEn:"In the classroom",who:"同学",whoEn:"Classmate",
+   h:"好的，放心吧。",p:"Hǎo de, fàng xīn ba.",en:"Okay, don't worry."},
+
+  {num:2,sCn:"在会议室",sEn:"In the conference room",who:"周明",whoEn:"Zhou Ming",
+   h:"会议结束后，别忘记把空调关了。",p:"Huìyì jiéshù hòu, bié wàngjì bǎ kōngtiáo guān le.",en:"After the meeting ends, don't forget to turn off the AC."},
+  {num:2,sCn:"在会议室",sEn:"In the conference room",who:"小丽",whoEn:"Xiaoli",
+   h:"好的。王经理两点左右来了个电话。",p:"Hǎo de. Wáng jīnglǐ liǎng diǎn zuǒyòu láile ge diànhuà.",en:"Okay. Manager Wang called around two o'clock."},
+  {num:2,sCn:"在会议室",sEn:"In the conference room",who:"周明",whoEn:"Zhou Ming",
+   h:"他已经到北京了？",p:"Tā yǐjīng dào Běijīng le?",en:"He's already arrived in Beijing?"},
+  {num:2,sCn:"在会议室",sEn:"In the conference room",who:"小丽",whoEn:"Xiaoli",
+   h:"是的，他正坐地铁来我们公司呢。",p:"Shì de, tā zhèng zuò dìtiě lái wǒmen gōngsī ne.",en:"Yes — he's on the subway coming to our company right now."},
+  {num:2,sCn:"在会议室",sEn:"In the conference room",who:"周明",whoEn:"Zhou Ming",
+   h:"等他到了就告诉我。",p:"Děng tā dàole jiù gàosu wǒ.",en:"Let me know as soon as he arrives."},
+
+  {num:3,sCn:"在客厅",sEn:"In the living room",who:"妈妈",whoEn:"Mom",
+   h:"还差一双筷子，你去拿一下。",p:"Hái chà yì shuāng kuàizi, nǐ qù ná yíxià.",en:"We're still one pair of chopsticks short — go grab them."},
+  {num:3,sCn:"在客厅",sEn:"In the living room",who:"儿子",whoEn:"Son",
+   h:"今天怎么做了这么多菜？",p:"Jīntiān zěnme zuòle zhème duō cài?",en:"How come you made so many dishes today?"},
+  {num:3,sCn:"在客厅",sEn:"In the living room",who:"妈妈",whoEn:"Mom",
+   h:"今天是你爸爸的生日。",p:"Jīntiān shì nǐ bàba de shēngrì.",en:"Today is your dad's birthday."},
+  {num:3,sCn:"在客厅",sEn:"In the living room",who:"儿子",whoEn:"Son",
+   h:"真的啊？我把爸爸的生日忘了。那我们今天喝点儿啤酒吧。",p:"Zhēn de a? Wǒ bǎ bàba de shēngrì wàng le. Nà wǒmen jīntiān hē diǎnr píjiǔ ba.",en:"Really? I forgot Dad's birthday. Let's have some beer today then."},
+  {num:3,sCn:"在客厅",sEn:"In the living room",who:"妈妈",whoEn:"Mom",
+   h:"医生说你爸爸一口酒都不能喝，别让他看见酒瓶子。",p:"Yīshēng shuō nǐ bàba yì kǒu jiǔ dōu bù néng hē, bié ràng tā kànjiàn jiǔ píngzi.",en:"The doctor says your dad can't drink a single drop — don't let him see the bottle."},
+
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"这个笔记本电脑我去年买的时候要五千块左右，现在便宜多了。",p:"Zhège bǐjìběn diànnǎo wǒ qùnián mǎi de shíhou yào wǔ qiān kuài zuǒyòu, xiànzài piányi duō le.",en:"When I bought this laptop last year it cost about 5,000 yuan; now it's much cheaper."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"我想把这个电脑卖了，再买一个更好的。",p:"Wǒ xiǎng bǎ zhège diànnǎo mài le, zài mǎi yí ge gèng hǎo de.",en:"I want to sell this computer and buy a better one."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"现在我每天起床后的第一件事就是打开电脑，看电子邮件。",p:"Xiànzài wǒ měi tiān qǐ chuáng hòu de dì yī jiàn shì jiù shì dǎ kāi diànnǎo, kàn diànzǐ yóujiàn.",en:"Now the first thing I do every day after getting up is turn on the computer and check email."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"我已经很少写信，也很少用笔写字，已经习惯用电脑来学习和工作了。",p:"Wǒ yǐjīng hěn shǎo xiě xìn, yě hěn shǎo yòng bǐ xiě zì, yǐjīng xíguàn yòng diànnǎo lái xuéxí hé gōngzuò le.",en:"I rarely write letters now, and rarely write by hand — I've gotten used to studying and working on the computer."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"哪一天突然没有了电脑，我们怎么办呢？",p:"Nǎ yì tiān tūrán méiyǒule diànnǎo, wǒmen zěnme bàn ne?",en:"If one day the computer suddenly vanished, what would we do?"}
+]},
+{num:12,cn:"把重要的东西放在我这儿吧",en:"Leave the important items with me",wm:"把",active:true,newWords:[
+  {h:"太阳",p:"tàiyáng",m:"sun"},
+  {h:"西",p:"xī",m:"west"},
+  {h:"生气",p:"shēngqì",m:"angry; to get angry"},
+  {h:"行李箱",p:"xínglǐxiāng",m:"suitcase, luggage"},
+  {h:"自己",p:"zìjǐ",m:"self, oneself"},
+  {h:"包",p:"bāo",m:"bag, sack"},
+  {h:"发现",p:"fāxiàn",m:"to discover, realize"},
+  {h:"护照",p:"hùzhào",m:"passport"},
+  {h:"起飞",p:"qǐfēi",m:"(of an aircraft) to take off"},
+  {h:"司机",p:"sījī",m:"driver"},
+  {h:"教",p:"jiāo",m:"to teach"},
+  {h:"画",p:"huà",m:"to draw, paint; a painting"},
+  {h:"需要",p:"xūyào",m:"to need"},
+  {h:"黑板",p:"hēibǎn",m:"blackboard"}
+],review:[
+  {h:"从",p:"cóng",m:"from"},
+  {h:"出来",p:"chūlai",m:"to come out"},
+  {h:"睡觉",p:"shuìjiào",m:"to sleep"},
+  {h:"以后",p:"yǐhòu",m:"after, later"},
+  {h:"办事",p:"bànshì",m:"to handle affairs, run errands"},
+  {h:"飞机",p:"fēijī",m:"airplane"},
+  {h:"衣服",p:"yīfu",m:"clothes"},
+  {h:"星期",p:"xīngqī",m:"week"},
+  {h:"照顾",p:"zhàogù",m:"to look after, care for"},
+  {h:"准备",p:"zhǔnbèi",m:"to prepare"},
+  {h:"照片",p:"zhàopiàn",m:"photo"},
+  {h:"机场",p:"jīchǎng",m:"airport"},
+  {h:"路上",p:"lùshang",m:"on the way"},
+  {h:"带",p:"dài",m:"to bring, carry"},
+  {h:"钱包",p:"qiánbāo",m:"wallet"},
+  {h:"重要",p:"zhòngyào",m:"important"},
+  {h:"铅笔",p:"qiānbǐ",m:"pencil"},
+  {h:"因为",p:"yīnwèi",m:"because"}
+],grammar:[
+  {q:"把 + V + 在 / 到 / 给 — placing or transferring the object",
+   a:"After the verb in a 把 sentence, attach where it ends up: 在/到 + place, or 给 + recipient.",
+   ex:[{h:"把衣服放到行李箱里",p:"bǎ yīfu fàngdào xínglǐxiāng li",en:"put the clothes into the suitcase"},
+       {h:"把重要的东西放在我这儿",p:"bǎ zhòngyào de dōngxi fàng zài wǒ zhèr",en:"leave the important things with me"},
+       {h:"把书还给他",p:"bǎ shū huán gěi tā",en:"return the book to him"}]},
+  {q:"就 (jiù) — sooner / earlier / less than expected",
+   a:"就 before the verb says something happens early, fast, or with as little as. Often pairs with a time word.",
+   ex:[{h:"我八点就要到公司",p:"wǒ bā diǎn jiù yào dào gōngsī",en:"I have to be at work as early as 8"},
+       {h:"一个星期就回来",p:"yí ge xīngqī jiù huílai",en:"back in just a week"}]},
+  {q:"才 (cái) — later / slower / only then than expected",
+   a:"才 before the verb says something happens late, only just, or only under a condition. (Opposite feel to 就.)",
+   ex:[{h:"十二点以后才睡觉",p:"shí'èr diǎn yǐhòu cái shuì jiào",en:"doesn't sleep until after 12"},
+       {h:"我才发现忘带护照了",p:"wǒ cái fāxiàn wàng dài hùzhào le",en:"only then did I realize I'd forgotten my passport"}]},
+  {q:"不是因为 …，是因为 … — what does it do?",
+   a:"Corrects the reason: \u201cnot because X, but because Y.\u201d Rules out the wrong cause and gives the real one.",
+   ex:[{h:"不是因为他们没带铅笔，是因为他们没有好习惯",p:"bú shì yīnwèi tāmen méi dài qiānbǐ, shì yīnwèi tāmen méiyǒu hǎo xíguàn",en:"not because they forgot a pencil, but because they lack good habits"}]}
+],dialogue:[
+  {num:1,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"今天太阳从西边出来了吗？",p:"Jīntiān tàiyáng cóng xībian chūlai le ma?",en:"Did the sun rise in the west today? (i.e. what's gotten into you?)"},
+  {num:1,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"怎么了？",p:"Zěnme le?",en:"What's up?"},
+  {num:1,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"你怎么这么早就要睡觉了？以前都要12点以后才睡觉。",p:"Nǐ zěnme zhème zǎo jiù yào shuì jiào le? Yǐqián dōu yào shí'èr diǎn yǐhòu cái shuì jiào.",en:"Why are you going to bed so early? You never used to sleep before midnight."},
+  {num:1,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"我明天8点就要到公司。",p:"Wǒ míngtiān bā diǎn jiù yào dào gōngsī.",en:"I have to be at the office by 8 tomorrow."},
+  {num:1,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"有事吗？",p:"Yǒu shì ma?",en:"Something going on?"},
+  {num:1,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"经理生气了，他告诉我，明天8点不到，以后就别来了。",p:"Jīnglǐ shēng qì le, tā gàosu wǒ, míngtiān bā diǎn bú dào, yǐhòu jiù bié lái le.",en:"The manager got angry — he told me if I'm not in by 8 tomorrow, don't bother coming anymore."},
+
+  {num:2,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"我要跟周经理去外地办事，明天的飞机。",p:"Wǒ yào gēn Zhōu jīnglǐ qù wàidì bàn shì, míngtiān de fēijī.",en:"I'm going out of town on business with Manager Zhou — the flight's tomorrow."},
+  {num:2,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"那我帮你把衣服放到行李箱里吧。什么时候回来？",p:"Nà wǒ bāng nǐ bǎ yīfu fàngdào xínglǐxiāng li ba. Shénme shíhou huílai?",en:"Then let me pack your clothes into the suitcase. When are you back?"},
+  {num:2,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"一个星期就回来。",p:"Yí ge xīngqī jiù huílai.",en:"Back in just a week."},
+  {num:2,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"啊？一个星期以后才回来？",p:"Á? Yí ge xīngqī yǐhòu cái huílai?",en:"What? Not back until a week from now?"},
+  {num:2,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"你要自己照顾好自己，我已经给你准备好吃的和喝的了。",p:"Nǐ yào zìjǐ zhàogù hǎo zìjǐ, wǒ yǐjīng gěi nǐ zhǔnbèi hǎo chī de hé hē de le.",en:"Take good care of yourself — I've already got food and drinks ready for you."},
+  {num:2,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"好吧。我已经把我的照片放在你的包里了。",p:"Hǎo ba. Wǒ yǐjīng bǎ wǒ de zhàopiàn fàng zài nǐ de bāo li le.",en:"Okay. I've already put my photo in your bag."},
+
+  {num:3,sCn:"在机场",sEn:"At the airport",who:"周明",whoEn:"Zhou Ming",
+   h:"你怎么才来？",p:"Nǐ zěnme cái lái?",en:"Why are you only getting here now?"},
+  {num:3,sCn:"在机场",sEn:"At the airport",who:"小刚",whoEn:"Xiaogang",
+   h:"对不起，周经理，来机场的路上我才发现忘带护照了。",p:"Duìbuqǐ, Zhōu jīnglǐ, lái jīchǎng de lùshang wǒ cái fāxiàn wàng dài hùzhào le.",en:"Sorry, Manager Zhou — on the way to the airport I realized I'd forgotten my passport."},
+  {num:3,sCn:"在机场",sEn:"At the airport",who:"周明",whoEn:"Zhou Ming",
+   h:"快点吧，飞机就要起飞了。",p:"Kuài diǎn ba, fēijī jiù yào qǐfēi le.",en:"Hurry up — the plane's about to take off."},
+  {num:3,sCn:"在机场",sEn:"At the airport",who:"小刚",whoEn:"Xiaogang",
+   h:"您有钱吗？司机把我送到机场的时候，我才发现忘记带钱包了。",p:"Nín yǒu qián ma? Sījī bǎ wǒ sòng dào jīchǎng de shíhou, wǒ cái fāxiàn wàngjì dài qiánbāo le.",en:"Do you have any cash? When the driver dropped me at the airport, I realized I'd forgotten my wallet too."},
+  {num:3,sCn:"在机场",sEn:"At the airport",who:"周明",whoEn:"Zhou Ming",
+   h:"我看你还是把重要的东西放在我这儿吧。",p:"Wǒ kàn nǐ háishi bǎ zhòngyào de dōngxi fàng zài wǒ zhèr ba.",en:"I think you'd better leave the important things with me."},
+
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"我是一个中学老师，教学生画画儿。",p:"Wǒ shì yí ge zhōngxué lǎoshī, jiāo xuésheng huà huàr.",en:"I'm a middle-school teacher; I teach students to draw."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"每次下课前，我都会把下次学生需要带的东西写在黑板上，",p:"Měi cì xià kè qián, wǒ dōu huì bǎ xià cì xuésheng xūyào dài de dōngxi xiě zài hēibǎn shang,",en:"Before each class ends, I write on the blackboard what students need to bring next time,"},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"但是每次上课时，总会有学生忘了拿铅笔，",p:"dànshì měi cì shàng kè shí, zǒng huì yǒu xuésheng wàngle ná qiānbǐ,",en:"but every class there's always a student who forgets to bring a pencil,"},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"所以我有点儿生气，不是因为他们没带铅笔，是因为他们没有好的学习习惯。",p:"suǒyǐ wǒ yǒudiǎnr shēng qì, bú shì yīnwèi tāmen méi dài qiānbǐ, shì yīnwèi tāmen méiyǒu hǎo de xuéxí xíguàn.",en:"so I get a little annoyed — not because they forgot a pencil, but because they don't have good study habits."}
+]},
+{num:13,cn:"我是走回来的",en:"I walked back",wm:"走",active:true,newWords:[
+  {h:"终于",p:"zhōngyú",m:"finally, at last"},
+  {h:"爷爷",p:"yéye",m:"(paternal) grandfather"},
+  {h:"礼物",p:"lǐwù",m:"gift, present"},
+  {h:"奶奶",p:"nǎinai",m:"(paternal) grandmother"},
+  {h:"遇到",p:"yùdào",m:"to run into, come across"},
+  {h:"一边",p:"yìbiān",m:"(一边…一边…) at the same time"},
+  {h:"过去",p:"guòqù",m:"the past"},
+  {h:"一般",p:"yìbān",m:"general; usual(ly)"},
+  {h:"愿意",p:"yuànyì",m:"to be willing, would like to"},
+  {h:"起来",p:"qǐlai",m:"(directional) up; to rise"},
+  {h:"应该",p:"yīnggāi",m:"should, ought to"},
+  {h:"生活",p:"shēnghuó",m:"life"},
+  {h:"校长",p:"xiàozhǎng",m:"principal, headmaster"},
+  {h:"坏",p:"huài",m:"broken; (V坏) to ruin, wear out"},
+  {h:"经常",p:"jīngcháng",m:"often"}
+],review:[
+  {h:"商店",p:"shāngdiàn",m:"shop, store"},
+  {h:"送",p:"sòng",m:"to give (a gift); to see off"},
+  {h:"咖啡店",p:"kāfēidiàn",m:"café"},
+  {h:"老同学",p:"lǎo tóngxué",m:"old classmate"},
+  {h:"晚",p:"wǎn",m:"late"},
+  {h:"公共汽车",p:"gōnggòng qìchē",m:"bus"},
+  {h:"周末",p:"zhōumò",m:"weekend"},
+  {h:"电影",p:"diànyǐng",m:"movie, film"},
+  {h:"电影院",p:"diànyǐngyuàn",m:"cinema"},
+  {h:"电视",p:"diànshì",m:"television"},
+  {h:"久",p:"jiǔ",m:"(for a) long time"},
+  {h:"站",p:"zhàn",m:"to stand"},
+  {h:"丈夫",p:"zhàngfu",m:"husband"},
+  {h:"早饭",p:"zǎofàn",m:"breakfast"},
+  {h:"报纸",p:"bàozhǐ",m:"newspaper"},
+  {h:"忙",p:"máng",m:"busy"},
+  {h:"孩子",p:"háizi",m:"child"},
+  {h:"希望",p:"xīwàng",m:"to hope"}
+],grammar:[
+  {q:"Compound directional complements: V + 回/出/过/起 + 来/去",
+   a:"After the verb, 回/出/过/起 gives the direction and 来/去 shows toward (来) or away from (去) the speaker.",
+   ex:[{h:"买回来",p:"mǎi huílai",en:"buy and bring back"},
+       {h:"拿出来",p:"ná chūlai",en:"take (it) out"},
+       {h:"站起来",p:"zhàn qǐlai",en:"stand up"}]},
+  {q:"是 … 的 (shì … de) — emphasize HOW / WHEN / WHERE a past action happened",
+   a:"For a completed action, frame the manner / time / place between 是 and 的. That's the focus.",
+   ex:[{h:"我是走回来的",p:"wǒ shì zǒu huílai de",en:"I came back on foot"},
+       {h:"都是从那边的商店买回来的",p:"dōu shì cóng nà bian de shāngdiàn mǎi huílai de",en:"they were all bought from that shop over there"}]},
+  {q:"一边 … 一边 … (yìbiān … yìbiān …) — meaning?",
+   a:"一边 + V1 一边 + V2 = doing two actions at the same time.",
+   ex:[{h:"一边喝咖啡一边聊天",p:"yìbiān hē kāfēi yìbiān liáo tiān",en:"chat while drinking coffee"},
+       {h:"一边吃一边看",p:"yìbiān chī yìbiān kàn",en:"eat while watching"}]},
+  {q:"终于 (zhōngyú) — when do you use it?",
+   a:"An adverb before the verb for an outcome you've been waiting for; usually with 了.",
+   ex:[{h:"你终于回来了",p:"nǐ zhōngyú huílai le",en:"you're finally back"},
+       {h:"终于完成了",p:"zhōngyú wánchéng le",en:"finished at last"}]}
+],dialogue:[
+  {num:1,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"你终于回来了！从哪儿买回来这么多东西啊？",p:"Nǐ zhōngyú huílai le! Cóng nǎr mǎi huílai zhème duō dōngxi a?",en:"You're finally back! Where did you buy all this stuff?"},
+  {num:1,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"都是从那边的商店买回来的。",p:"Dōu shì cóng nà bian de shāngdiàn mǎi huílai de.",en:"It was all bought from that shop over there."},
+  {num:1,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"怎么还买红酒回来了？谁喝啊？",p:"Zěnme hái mǎi hóngjiǔ huílai le? Shéi hē a?",en:"You bought red wine too? Who's going to drink it?"},
+  {num:1,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"这是给爷爷的礼物，明天我们一起送过去，看看爷爷奶奶。",p:"Zhè shì gěi yéye de lǐwù, míngtiān wǒmen yìqǐ sòng guoqu, kànkan yéye nǎinai.",en:"It's a gift for Grandpa — tomorrow we'll take it over together and visit Grandma and Grandpa."},
+  {num:1,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"那我的礼物呢？快拿出来让我看看。",p:"Nà wǒ de lǐwù ne? Kuài ná chulai ràng wǒ kànkan.",en:"And my gift? Take it out and let me see."},
+  {num:1,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"我不是已经回来了吗？",p:"Wǒ bú shì yǐjīng huílai le ma?",en:"Haven't I already come back (to you)?"},
+
+  {num:2,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"我今天看见你和一个女的进了咖啡店，她是谁啊？",p:"Wǒ jīntiān kànjiàn nǐ hé yí ge nǚ de jìnle kāfēidiàn, tā shì shéi a?",en:"I saw you go into a café with some woman today — who was she?"},
+  {num:2,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"她是我今天在路上遇到的一个老同学。",p:"Tā shì wǒ jīntiān zài lùshang yùdào de yí ge lǎo tóngxué.",en:"She's an old classmate I ran into on the street today."},
+  {num:2,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"你们就一起去喝咖啡了？",p:"Nǐmen jiù yìqǐ qù hē kāfēi le?",en:"So you just went for coffee together?"},
+  {num:2,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"是啊，一边喝咖啡一边聊了些过去的事。",p:"Shì a, yìbiān hē kāfēi yìbiān liáole xiē guòqù de shì.",en:"Yeah — we drank coffee and chatted about old times."},
+  {num:2,sCn:"在家",sEn:"At home",who:"小丽",whoEn:"Xiaoli",
+   h:"你回来得这么晚，是说了很多过去的事吗？",p:"Nǐ huílai de zhème wǎn, shì shuōle hěn duō guòqù de shì ma?",en:"You got back so late — did you talk about a lot of old times?"},
+  {num:2,sCn:"在家",sEn:"At home",who:"小刚",whoEn:"Xiaogang",
+   h:"不是。没有公共汽车了，我是走回来的。",p:"Bú shì. Méiyǒu gōnggòng qìchē le, wǒ shì zǒu huílai de.",en:"No. There were no more buses, so I walked back."},
+
+  {num:3,sCn:"在打电话",sEn:"On the phone",who:"同事",whoEn:"Colleague",
+   h:"小丽，周末你一般跟小刚出去看电影吗？",p:"Xiǎolì, zhōumò nǐ yìbān gēn Xiǎogāng chūqu kàn diànyǐng ma?",en:"Xiaoli, do you usually go out to the movies with Xiaogang on weekends?"},
+  {num:3,sCn:"在打电话",sEn:"On the phone",who:"小丽",whoEn:"Xiaoli",
+   h:"我很少去电影院看电影，我更愿意在家看电视。",p:"Wǒ hěn shǎo qù diànyǐngyuàn kàn diànyǐng, wǒ gèng yuànyì zài jiā kàn diànshì.",en:"I rarely go to the cinema — I'd rather watch TV at home."},
+  {num:3,sCn:"在打电话",sEn:"On the phone",who:"同事",whoEn:"Colleague",
+   h:"看电视有什么意思啊？",p:"Kàn diànshì yǒu shénme yìsi a?",en:"What's fun about watching TV?"},
+  {num:3,sCn:"在打电话",sEn:"On the phone",who:"小丽",whoEn:"Xiaoli",
+   h:"可以一边吃一边看，坐久了还可以站起来休息一会儿。",p:"Kěyǐ yìbiān chī yìbiān kàn, zuò jiǔ le hái kěyǐ zhàn qilai xiūxi yíhuìr.",en:"You can eat while watching, and if you've sat a while you can stand up and take a break."},
+  {num:3,sCn:"在打电话",sEn:"On the phone",who:"同事",whoEn:"Colleague",
+   h:"你应该多出去走走，这样你们的生活会更有意思。",p:"Nǐ yīnggāi duō chūqu zǒuzou, zhèyàng nǐmen de shēnghuó huì gèng yǒu yìsi.",en:"You should get out more — that way your life would be more interesting."},
+  {num:3,sCn:"在打电话",sEn:"On the phone",who:"小丽",whoEn:"Xiaoli",
+   h:"有他在，我的生活已经很有意思了。",p:"Yǒu tā zài, wǒ de shēnghuó yǐjīng hěn yǒu yìsi le.",en:"With him around, my life is already plenty interesting."},
+
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"刚结婚的时候，我丈夫是中学老师，他喜欢每天早上起床后，一边吃早饭一边看报纸。",p:"Gāng jié hūn de shíhou, wǒ zhàngfu shì zhōngxué lǎoshī, tā xǐhuan měi tiān zǎoshang qǐ chuáng hòu, yìbiān chī zǎofàn yìbiān kàn bàozhǐ.",en:"When we'd just married, my husband was a middle-school teacher; every morning after getting up he liked to read the paper while eating breakfast."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"十年过去了，现在他已经是校长了，因为太忙，每天早上我起床后都看不到他，晚上很晚他才回到家。",p:"Shí nián guòqu le, xiànzài tā yǐjīng shì xiàozhǎng le, yīnwèi tài máng, měi tiān zǎoshang wǒ qǐ chuáng hòu dōu kàn bu dào tā, wǎnshang hěn wǎn tā cái huí dào jiā.",en:"Ten years have passed; now he's the principal. He's so busy that I don't see him in the mornings, and he only gets home very late at night."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"我真怕他累坏了。",p:"Wǒ zhēn pà tā lèihuài le.",en:"I'm really afraid he's wearing himself out."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"希望他能少一些会议，多一些休息，可以经常和我还有孩子在一起。",p:"Xīwàng tā néng shǎo yìxiē huìyì, duō yìxiē xiūxi, kěyǐ jīngcháng hé wǒ hái yǒu háizi zài yìqǐ.",en:"I hope he can have fewer meetings and more rest, so he can be with me and the kids more often."}
+]},
+{num:14,cn:"你把水果拿过来",en:"Please bring the fruit here",wm:"拿",active:true,newWords:[
+  {h:"打扫",p:"dǎsǎo",m:"to clean, sweep"},
+  {h:"干净",p:"gānjìng",m:"clean"},
+  {h:"然后",p:"ránhòu",m:"then, after that"},
+  {h:"冰箱",p:"bīngxiāng",m:"refrigerator"},
+  {h:"洗澡",p:"xǐzǎo",m:"to take a bath / shower"},
+  {h:"节目",p:"jiémù",m:"programme, show"},
+  {h:"月亮",p:"yuèliang",m:"moon"},
+  {h:"像",p:"xiàng",m:"to be like, resemble"},
+  {h:"盘子",p:"pánzi",m:"plate"},
+  {h:"刮风",p:"guā fēng",m:"to be windy"},
+  {h:"叔叔",p:"shūshu",m:"uncle (father's younger brother)"},
+  {h:"阿姨",p:"āyí",m:"aunt; auntie"},
+  {h:"故事",p:"gùshì",m:"story"},
+  {h:"声音",p:"shēngyīn",m:"sound, voice"},
+  {h:"菜单",p:"càidān",m:"menu"},
+  {h:"简单",p:"jiǎndān",m:"simple"},
+  {h:"香蕉",p:"xiāngjiāo",m:"banana"}
+],review:[
+  {h:"客人",p:"kèrén",m:"guest"},
+  {h:"着急",p:"zháojí",m:"to be anxious, worried"},
+  {h:"房间",p:"fángjiān",m:"room"},
+  {h:"热",p:"rè",m:"hot"},
+  {h:"茶",p:"chá",m:"tea"},
+  {h:"杯子",p:"bēizi",m:"cup"},
+  {h:"西瓜",p:"xīguā",m:"watermelon"},
+  {h:"手机",p:"shǒujī",m:"mobile phone"},
+  {h:"接",p:"jiē",m:"to answer (a call); to meet"},
+  {h:"事情",p:"shìqing",m:"matter, thing"},
+  {h:"等",p:"děng",m:"to wait"},
+  {h:"漂亮",p:"piàoliang",m:"pretty, beautiful"},
+  {h:"搬",p:"bān",m:"to move (objects)"},
+  {h:"水果",p:"shuǐguǒ",m:"fruit"},
+  {h:"年轻",p:"niánqīng",m:"young"},
+  {h:"马上",p:"mǎshàng",m:"right away, at once"},
+  {h:"其实",p:"qíshí",m:"actually, in fact"},
+  {h:"新鲜",p:"xīnxiān",m:"fresh"}
+],grammar:[
+  {q:"把 + V + result / direction complement",
+   a:"In a 把 sentence the verb takes a complement giving the outcome — a result (好/完/干净) or a direction (出来/过来/进去).",
+   ex:[{h:"把房间打扫干净",p:"bǎ fángjiān dǎsǎo gānjìng",en:"clean the room spotless"},
+       {h:"把西瓜拿出来",p:"bǎ xīguā ná chulai",en:"take the watermelon out"}]},
+  {q:"先 …，然后(再)… — how do you sequence steps?",
+   a:"Order actions with 先 (first) … 然后 / 再 (then) …. Common in instructions.",
+   ex:[{h:"先把茶放好，然后把西瓜拿出来",p:"xiān bǎ chá fànghǎo, ránhòu bǎ xīguā ná chulai",en:"first set out the tea, then take out the watermelon"},
+       {h:"先把米饭做好，然后再把水果放进去",p:"xiān bǎ mǐfàn zuòhǎo, ránhòu zài bǎ shuǐguǒ fàng jinqu",en:"first cook the rice, then add the fruit"}]},
+  {q:"像 … 一样 (xiàng … yíyàng) — meaning?",
+   a:"像 + noun + 一样 = resembling something; often followed by an adjective.",
+   ex:[{h:"像白色的盘子一样",p:"xiàng báisè de pánzi yíyàng",en:"like a white plate"},
+       {h:"他像孩子一样",p:"tā xiàng háizi yíyàng",en:"he's like a child"}]},
+  {q:"要是 …，(就/还)… (yàoshi) — what does it mean?",
+   a:"要是 introduces a condition (= 如果, more colloquial); the result often takes 就 or 还.",
+   ex:[{h:"要是你愿意，还可以做西瓜饭",p:"yàoshi nǐ yuànyì, hái kěyǐ zuò xīguā fàn",en:"if you like, you can even make watermelon rice"},
+       {h:"要是下雨就别去了",p:"yàoshi xià yǔ jiù bié qù le",en:"if it rains, don't go"}]}
+],dialogue:[
+  {num:1,sCn:"在家",sEn:"At home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"客人就要来了，你怎么还不打扫房间啊？",p:"Kèrén jiù yào lái le, nǐ zěnme hái bù dǎsǎo fángjiān a?",en:"The guests are about to arrive — why haven't you cleaned the room yet?"},
+  {num:1,sCn:"在家",sEn:"At home",who:"周明",whoEn:"Zhou Ming",
+   h:"别着急，我让孩子们打扫呢，客人来的时候，他们会把房间打扫干净。",p:"Bié zháo jí, wǒ ràng háizimen dǎsǎo ne, kèrén lái de shíhou, tāmen huì bǎ fángjiān dǎsǎo gānjìng.",en:"Don't worry, I've got the kids cleaning — by the time the guests come, they'll have the room spotless."},
+  {num:1,sCn:"在家",sEn:"At home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"那你也不能看电视啊。",p:"Nà nǐ yě bù néng kàn diànshì a.",en:"Still, you can't just watch TV."},
+  {num:1,sCn:"在家",sEn:"At home",who:"周明",whoEn:"Zhou Ming",
+   h:"你让我做什么？",p:"Nǐ ràng wǒ zuò shénme?",en:"What do you want me to do?"},
+  {num:1,sCn:"在家",sEn:"At home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"先把茶和杯子放好，然后把冰箱里的西瓜拿出来。",p:"Xiān bǎ chá hé bēizi fànghǎo, ránhòu bǎ bīngxiāng li de xīguā ná chulai.",en:"First set out the tea and cups, then take the watermelon out of the fridge."},
+  {num:1,sCn:"在家",sEn:"At home",who:"周明",whoEn:"Zhou Ming",
+   h:"太热了，我还是先把空调打开吧。",p:"Tài rè le, wǒ háishi xiān bǎ kōngtiáo dǎ kāi ba.",en:"It's so hot — let me turn on the AC first."},
+
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"同事",whoEn:"Colleague",
+   h:"你在忙什么呢？刚才打你的手机你也不接。",p:"Nǐ zài máng shénme ne? Gāngcái dǎ nǐ de shǒujī nǐ yě bù jiē.",en:"What are you busy with? I just called your phone and you didn't pick up."},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"小刚",whoEn:"Xiaogang",
+   h:"对不起，我刚洗了个澡，没听见。有什么事吗？",p:"Duìbuqǐ, wǒ gāng xǐle ge zǎo, méi tīngjiàn. Yǒu shénme shì ma?",en:"Sorry, I'd just taken a shower and didn't hear it. What's up?"},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"同事",whoEn:"Colleague",
+   h:"我想问问你公司里的一些事情。",p:"Wǒ xiǎng wènwen nǐ gōngsī li de yìxiē shìqing.",en:"I wanted to ask you about a few things at the company."},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"小刚",whoEn:"Xiaogang",
+   h:"你先等一下，我去把电视关了。",p:"Nǐ xiān děng yíxià, wǒ qù bǎ diànshì guān le.",en:"Hang on a sec — let me go turn off the TV."},
+  {num:2,sCn:"在打电话",sEn:"On the phone",who:"同事",whoEn:"Colleague",
+   h:"没关系，你先把电视节目看完吧，然后再给我回电话。",p:"Méi guānxi, nǐ xiān bǎ diànshì jiémù kànwán ba, ránhòu zài gěi wǒ huí diànhuà.",en:"No problem — finish your TV show first, then call me back."},
+
+  {num:3,sCn:"在小明家",sEn:"At Xiaoming's home",who:"同学",whoEn:"Classmate",
+   h:"今晚的月亮真漂亮，像白色的盘子一样。",p:"Jīn wǎn de yuèliang zhēn piàoliang, xiàng báisè de pánzi yíyàng.",en:"Tonight's moon is really pretty — like a white plate."},
+  {num:3,sCn:"在小明家",sEn:"At Xiaoming's home",who:"小明",whoEn:"Xiaoming",
+   h:"是啊，外边也不刮风，我们坐在外边一边看月亮一边吃东西，怎么样？",p:"Shì a, wàibian yě bù guā fēng, wǒmen zuò zài wàibian yìbiān kàn yuèliang yìbiān chī dōngxi, zěnme yàng?",en:"Yeah, and it's not windy out — how about we sit outside, watch the moon and have a snack?"},
+  {num:3,sCn:"在小明家",sEn:"At Xiaoming's home",who:"同学",whoEn:"Classmate",
+   h:"好啊，我先把桌椅搬出去，然后你把水果拿过来，我们听叔叔阿姨讲讲他们年轻时候的故事。",p:"Hǎo a, wǒ xiān bǎ zhuōyǐ bān chuqu, ránhòu nǐ bǎ shuǐguǒ ná guolai, wǒmen tīng shūshu āyí jiǎngjiang tāmen niánqīng shíhou de gùshì.",en:"Sure — I'll carry the table and chairs out first, then you bring the fruit over, and we'll hear uncle and auntie tell stories from when they were young."},
+  {num:3,sCn:"在小明家",sEn:"At Xiaoming's home",who:"小明",whoEn:"Xiaoming",
+   h:"太好了！记得给大山打个电话，让他马上过来。",p:"Tài hǎo le! Jìde gěi Dàshān dǎ ge diànhuà, ràng tā mǎshàng guòlai.",en:"Great! Remember to call Dashan and tell him to come over right away."},
+  {num:3,sCn:"在小明家",sEn:"At Xiaoming's home",who:"同学",whoEn:"Classmate",
+   h:"不用打了，你听外边的声音，一定是大山。",p:"Búyòng dǎ le, nǐ tīng wàibian de shēngyīn, yídìng shì Dàshān.",en:"No need — listen to that sound outside; it's definitely Dashan."},
+
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"你吃过水果饭吗？",p:"Nǐ chī guo shuǐguǒ fàn ma?",en:"Have you ever eaten fruit rice?"},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"你在饭馆的菜单上见过水果饭吗？",p:"Nǐ zài fànguǎnr de càidān shang jiàn guo shuǐguǒ fàn ma?",en:"Have you seen fruit rice on a restaurant menu?"},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"你想学着做水果饭吗？",p:"Nǐ xiǎng xuézhe zuò shuǐguǒ fàn ma?",en:"Do you want to learn to make fruit rice?"},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"其实做水果饭很简单，先把米饭做好，然后再把一块块新鲜的水果放进去，水果饭就做好了。",p:"Qíshí zuò shuǐguǒ fàn hěn jiǎndān, xiān bǎ mǐfàn zuòhǎo, ránhòu zài bǎ yí kuàikuài xīnxiān de shuǐguǒ fàng jinqu, shuǐguǒ fàn jiù zuòhǎo le.",en:"Actually it's simple: first cook the rice, then add fresh fruit piece by piece, and the fruit rice is done."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"你可以做苹果饭、香蕉饭，要是你愿意，还可以做西瓜饭。",p:"Nǐ kěyǐ zuò píngguǒ fàn, xiāngjiāo fàn, yàoshi nǐ yuànyì, hái kěyǐ zuò xīguā fàn.",en:"You can make apple rice or banana rice, and if you like, even watermelon rice."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"多吃新鲜水果对身体好。",p:"Duō chī xīnxiān shuǐguǒ duì shēntǐ hǎo.",en:"Eating more fresh fruit is good for your health."}
+]},
+{num:15,cn:"其他都没什么问题",en:"The rest of them are all OK",wm:"题",active:true,newWords:[
+  {h:"留学",p:"liúxué",m:"to study abroad"},
+  {h:"水平",p:"shuǐpíng",m:"level, standard"},
+  {h:"提高",p:"tígāo",m:"to improve, raise"},
+  {h:"练习",p:"liànxí",m:"exercise; to practise"},
+  {h:"完成",p:"wánchéng",m:"to complete"},
+  {h:"句子",p:"jùzi",m:"sentence"},
+  {h:"其他",p:"qítā",m:"the rest, others"},
+  {h:"发",p:"fā",m:"to send"},
+  {h:"要求",p:"yāoqiú",m:"requirement; to require"},
+  {h:"注意",p:"zhùyì",m:"to pay attention to"},
+  {h:"上网",p:"shàng wǎng",m:"to go online"},
+  {h:"除了",p:"chúle",m:"except, besides"},
+  {h:"新闻",p:"xīnwén",m:"news"},
+  {h:"花",p:"huā",m:"to spend (money, time)"},
+  {h:"极（了）",p:"jí (le)",m:"extremely"},
+  {h:"节日",p:"jiérì",m:"festival, holiday"},
+  {h:"举行",p:"jǔxíng",m:"to hold (an event)"},
+  {h:"世界",p:"shìjiè",m:"world"},
+  {h:"街道",p:"jiēdào",m:"street"},
+  {h:"各",p:"gè",m:"each, every"},
+  {h:"文化",p:"wénhuà",m:"culture"}
+],review:[
+  {h:"认真",p:"rènzhēn",m:"earnest, conscientious"},
+  {h:"作业",p:"zuòyè",m:"homework"},
+  {h:"一直",p:"yìzhí",m:"all along, continuously"},
+  {h:"不错",p:"búcuò",m:"not bad, pretty good"},
+  {h:"意思",p:"yìsi",m:"meaning"},
+  {h:"或者",p:"huòzhě",m:"or"},
+  {h:"开始",p:"kāishǐ",m:"to begin, start"},
+  {h:"大家",p:"dàjiā",m:"everyone"},
+  {h:"第一",p:"dì-yī",m:"first (place)"},
+  {h:"听歌",p:"tīng gē",m:"to listen to songs"},
+  {h:"穿",p:"chuān",m:"to wear, put on"},
+  {h:"弟弟",p:"dìdi",m:"younger brother"},
+  {h:"满意",p:"mǎnyì",m:"satisfied, pleased"},
+  {h:"花钱",p:"huā qián",m:"to spend money"},
+  {h:"夏天",p:"xiàtiān",m:"summer"},
+  {h:"不同",p:"bùtóng",m:"different"},
+  {h:"歌舞",p:"gēwǔ",m:"song and dance"},
+  {h:"春节",p:"Chūnjié",m:"Spring Festival"}
+],grammar:[
+  {q:"除了 … 以外 (chúle … yǐwài) — exclusion or addition?",
+   a:"Two senses: with 都 = \u201call except X\u201d; with 还/也 = \u201cbesides X, also …\u201d. 以外 is often optional.",
+   ex:[{h:"除了小云，其他人都来了",p:"chúle Xiǎoyún, qítā rén dōu lái le",en:"everyone came except Xiaoyun"},
+       {h:"除了看新闻，还可以听歌",p:"chúle kàn xīnwén, hái kěyǐ tīng gē",en:"besides reading news, you can also listen to music"}]},
+  {q:"极了 (jí le) — how do you say \u201cextremely\u201d?",
+   a:"Put 极了 right after an adjective for a high degree — stronger and more colloquial than 很.",
+   ex:[{h:"他满意极了",p:"tā mǎnyì jí le",en:"he's extremely satisfied"},
+       {h:"好吃极了",p:"hǎochī jí le",en:"extremely delicious"}]},
+  {q:"一点儿 也/都 不(没) … — what does it express?",
+   a:"一点儿 + 也/都 + a negative = emphatic \u201cnot in the least.\u201d",
+   ex:[{h:"提高得一点儿也不快",p:"tígāo de yìdiǎnr yě bù kuài",en:"not improving fast at all"},
+       {h:"一点儿都不累",p:"yìdiǎnr dōu bú lèi",en:"not tired at all"}]},
+  {q:"Question words as \u201cany-\u201d (疑问代词活用)",
+   a:"In a non-question, 什么/谁/哪儿 can mean \u201cany …\u201d: 什么 = anything/any, 谁 = anyone, 哪儿 = anywhere.",
+   ex:[{h:"有什么不明白的就问我",p:"yǒu shénme bù míngbai de jiù wèn wǒ",en:"ask me about anything you don't understand"},
+       {h:"没什么问题",p:"méi shénme wèntí",en:"no problem at all"}]}
+],dialogue:[
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"大山",whoEn:"Dashan",
+   h:"老师，我来中国留学两年了，但是我的汉语水平提高得一点儿也不快啊。",p:"Lǎoshī, wǒ lái Zhōngguó liú xué liǎng nián le, dànshì wǒ de Hànyǔ shuǐpíng tígāo de yìdiǎnr yě bú kuài a.",en:"Teacher, I've studied in China for two years, but my Chinese level isn't improving fast at all."},
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"老师",whoEn:"Teacher",
+   h:"你每天认真学习，做练习、完成作业，一直不错啊。",p:"Nǐ měi tiān rènzhēn xuéxí, zuò liànxí, wán chéng zuòyè, yìzhí búcuò a.",en:"You study hard every day, do exercises and finish your homework — you've been doing well all along."},
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"大山",whoEn:"Dashan",
+   h:"这是我昨天的作业，您帮我看看对不对。",p:"Zhè shì wǒ zuótiān de zuòyè, nín bāng wǒ kànkan duì bu duì.",en:"This is yesterday's homework — could you check whether it's right?"},
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"老师",whoEn:"Teacher",
+   h:"写得不错，除了这个句子意思有些不清楚外，其他都没什么问题。",p:"Xiě de búcuò, chúle zhège jùzi yìsi yǒuxiē bù qīngchu wài, qítā dōu méi shénme wèntí.",en:"Well written — apart from this one sentence being a bit unclear, there's no problem with the rest."},
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"大山",whoEn:"Dashan",
+   h:"谢谢老师！",p:"Xièxie lǎoshī!",en:"Thank you, Teacher!"},
+  {num:1,sCn:"在办公室",sEn:"In the office",who:"老师",whoEn:"Teacher",
+   h:"以后有什么不明白的地方，可以给我打电话或者发电子邮件。",p:"Yǐhòu yǒu shénme bù míngbai de dìfang, kěyǐ gěi wǒ dǎ diànhuà huòzhě fā diànzǐ yóujiàn.",en:"From now on, if there's anything you don't understand, you can call me or send an email."},
+
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"学生",whoEn:"Student",
+   h:"老师，除了小云，其他人都来了。",p:"Lǎoshī, chúle Xiǎoyún, qítā rén dōu lái le.",en:"Teacher, everyone's here except Xiaoyun."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"老师",whoEn:"Teacher",
+   h:"比赛马上就要开始了，小云怎么还没来？",p:"Bǐsài mǎshàng jiù yào kāishǐ le, Xiǎoyún zěnme hái méi lái?",en:"The match is about to start — why isn't Xiaoyun here yet?"},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"学生",whoEn:"Student",
+   h:"刚才给她打电话了，她在路上呢。",p:"Gāngcái gěi tā dǎ diànhuà le, tā zài lùshang ne.",en:"I called her just now — she's on her way."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"老师",whoEn:"Teacher",
+   h:"不等她了，我先给大家讲讲这次比赛的要求和一些需要注意的地方。",p:"Bù děng tā le, wǒ xiān gěi dàjiā jiǎngjiang zhè cì bǐsài de yāoqiú hé yìxiē xūyào zhù yì de dìfang.",en:"We won't wait for her — let me go over the rules for this match and a few things to watch out for."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"学生",whoEn:"Student",
+   h:"老师，您放心，今天的比赛我们一定能拿第一。",p:"Lǎoshī, nín fàngxīn, jīntiān de bǐsài wǒmen yídìng néng ná dì-yī.",en:"Teacher, don't worry — we'll definitely take first place today."},
+
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"现在用电脑上网真方便啊！",p:"Xiànzài yòng diànnǎo shàng wǎng zhēn fāngbiàn a!",en:"Going online on a computer is so convenient now!"},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiaogang",
+   h:"是啊，除了看新闻，人们还可以在网上听歌、看电影、买东西。",p:"Shì a, chúle kàn xīnwén, rénmen hái kěyǐ zài wǎngshang tīng gē, kàn diànyǐng, mǎi dōngxi.",en:"Yeah — besides reading news, people can listen to music, watch films and shop online."},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"对了，你从网上买的那件衣服呢？怎么没见你穿？",p:"Duìle, nǐ cóng wǎngshang mǎi de nà jiàn yīfu ne? Zěnme méi jiàn nǐ chuān?",en:"By the way, what about that shirt you bought online? How come I haven't seen you wear it?"},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiaogang",
+   h:"那件衣服我穿着有点儿小，给我弟弟了。",p:"Nà jiàn yīfu wǒ chuānzhe yǒudiǎnr xiǎo, gěi wǒ dìdi le.",en:"That shirt was a bit small on me, so I gave it to my brother."},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"他满意吗？",p:"Tā mǎnyì ma?",en:"Is he happy with it?"},
+  {num:3,sCn:"在休息室",sEn:"In the lounge",who:"小刚",whoEn:"Xiaogang",
+   h:"不用花钱，还有新衣服穿，他满意极了。",p:"Búyòng huā qián, hái yǒu xīn yīfu chuān, tā mǎnyì jí le.",en:"A new shirt for free — he's extremely pleased."},
+
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"除了春节、中秋节以外，啤酒节也是这里很重要的一个节日。",p:"Chúle Chūnjié, Zhōngqiū Jié yǐwài, píjiǔ jié yě shì zhèli hěn zhòngyào de yí ge jiérì.",en:"Besides Spring Festival and Mid-Autumn Festival, the Beer Festival is also an important holiday here."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"这个地方每年夏天都要举行一次啤酒节。",p:"Zhège dìfang měi nián xiàtiān dōu yào jǔxíng yí cì píjiǔ jié.",en:"This place holds a beer festival every summer."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"在啤酒节上，你可以喝到世界上不同地方的啤酒。",p:"Zài píjiǔ jié shang, nǐ kěyǐ hēdào shìjiè shang bùtóng dìfang de píjiǔ.",en:"At the festival you can drink beers from different places around the world."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"除了喝啤酒，你还可以在街道两边看到世界上不同地方的歌舞。",p:"Chúle hē píjiǔ, nǐ hái kěyǐ zài jiēdào liǎng biān kàndào shìjiè shang bùtóng dìfang de gēwǔ.",en:"Besides drinking beer, you can also see songs and dances from around the world along both sides of the street."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"你想不想了解世界各个地方的啤酒文化？",p:"Nǐ xiǎng bu xiǎng liǎojiě shìjiè gègè dìfang de píjiǔ wénhuà?",en:"Do you want to learn about beer cultures from all over the world?"},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"来这里的啤酒节看看吧。",p:"Lái zhèli de píjiǔ jié kànkan ba.",en:"Come check out the beer festival here."}
+]},
+{num:16,cn:"我现在累得下了班就想睡觉",en:"So tired I just want to sleep after work",wm:"累",active:true,newWords:[
+  {h:"城市",p:"chéngshì",m:"city"},
+  {h:"如果",p:"rúguǒ",m:"if, in case"},
+  {h:"认为",p:"rènwéi",m:"to think, believe"},
+  {h:"皮鞋",p:"píxié",m:"leather shoes"},
+  {h:"帽子",p:"màozi",m:"hat, cap"},
+  {h:"长",p:"zhǎng",m:"to grow, develop"},
+  {h:"可爱",p:"kě'ài",m:"lovely, adorable"},
+  {h:"米",p:"mǐ",m:"metre"},
+  {h:"公斤",p:"gōngjīn",m:"kilogram"},
+  {h:"鼻子",p:"bízi",m:"nose"},
+  {h:"头发",p:"tóufa",m:"hair"},
+  {h:"检查",p:"jiǎnchá",m:"to check, examine"},
+  {h:"刷牙",p:"shuā yá",m:"to brush one's teeth"},
+  {h:"关系",p:"guānxì",m:"relationship"},
+  {h:"别人",p:"biérén",m:"other people"},
+  {h:"词语",p:"cíyǔ",m:"word, expression"}
+],review:[
+  {h:"住",p:"zhù",m:"to live, stay"},
+  {h:"同一个",p:"tóng yí ge",m:"the same (one)"},
+  {h:"为什么",p:"wèishénme",m:"why"},
+  {h:"问题",p:"wèntí",m:"problem, question"},
+  {h:"时间",p:"shíjiān",m:"time"},
+  {h:"出去",p:"chūqu",m:"to go out"},
+  {h:"玩儿",p:"wánr",m:"to play, have fun"},
+  {h:"下班",p:"xià bān",m:"to get off work"},
+  {h:"女儿",p:"nǚ'ér",m:"daughter"},
+  {h:"出生",p:"chūshēng",m:"to be born"},
+  {h:"舒服",p:"shūfu",m:"comfortable, well"},
+  {h:"大夫",p:"dàifu",m:"doctor"},
+  {h:"牙",p:"yá",m:"tooth"},
+  {h:"冷",p:"lěng",m:"cold"},
+  {h:"见面",p:"jiàn miàn",m:"to meet (face to face)"},
+  {h:"笑",p:"xiào",m:"to smile, laugh"},
+  {h:"可能",p:"kěnéng",m:"maybe; possible"},
+  {h:"变",p:"biàn",m:"to change"}
+],grammar:[
+  {q:"如果 …，(就)… (rúguǒ) — \u201cif … (then) …\u201d",
+   a:"如果 sets up a condition (= 要是); the result clause often takes 就. 如果…的话 also works.",
+   ex:[{h:"如果有钱，就去了",p:"rúguǒ yǒu qián, jiù qù le",en:"if I'd had money, I'd have gone"},
+       {h:"如果不舒服，就去医院检查",p:"rúguǒ bù shūfu, jiù qù yīyuàn jiǎnchá",en:"if you feel unwell, go get a check-up"}]},
+  {q:"Complex state complement: V/Adj + 得 + (a whole phrase)",
+   a:"得 can introduce a longer phrase or clause describing the resulting state or degree — not just one word.",
+   ex:[{h:"累得下了班就想睡觉",p:"lèi de xià le bān jiù xiǎng shuì jiào",en:"so tired I just want to sleep after work"},
+       {h:"高兴得一个晚上都没睡着",p:"gāoxìng de yí ge wǎnshang dōu méi shuì zháo",en:"so happy he couldn't sleep all night"}]},
+  {q:"Reduplicated one-syllable adjectives: A → AA 的",
+   a:"Doubling a monosyllabic adjective (A → AA的) gives a vivid, affectionate description.",
+   ex:[{h:"白白的、胖胖的",p:"báibái de, pàngpàng de",en:"nice and fair, chubby"},
+       {h:"鼻子小小的",p:"bízi xiǎoxiǎo de",en:"a cute little nose"}]},
+  {q:"变得 + adj — what does it express?",
+   a:"变得 + adjective marks a change of state: \u201cto become / get (more) …\u201d.",
+   ex:[{h:"关系就会变得更好",p:"guānxì jiù huì biàn de gèng hǎo",en:"the relationship will get better"},
+       {h:"天气变得冷了",p:"tiānqì biàn de lěng le",en:"the weather has turned cold"}]}
+],dialogue:[
+  {num:1,sCn:"在公司",sEn:"In the company",who:"小丽",whoEn:"Xiaoli",
+   h:"我不喜欢一直住在同一个城市，想去其他城市看一看。",p:"Wǒ bù xǐhuan yìzhí zhù zài tóng yí ge chéngshì, xiǎng qù qítā chéngshì kàn yi kàn.",en:"I don't like living in the same city all the time — I want to go see other cities."},
+  {num:1,sCn:"在公司",sEn:"In the company",who:"周明",whoEn:"Zhou Ming",
+   h:"我年轻的时候也这么想，但是那时候没有钱，如果有钱，就去了。",p:"Wǒ niánqīng de shíhou yě zhème xiǎng, dànshì nà shíhou méiyǒu qián, rúguǒ yǒu qián, jiù qù le.",en:"I thought the same when I was young, but I had no money back then — if I'd had it, I'd have gone."},
+  {num:1,sCn:"在公司",sEn:"In the company",who:"小丽",whoEn:"Xiaoli",
+   h:"那您现在为什么不去？",p:"Nà nín xiànzài wèi shénme bú qù?",en:"So why don't you go now?"},
+  {num:1,sCn:"在公司",sEn:"In the company",who:"周明",whoEn:"Zhou Ming",
+   h:"现在钱不是问题了，主要是没有时间。",p:"Xiànzài qián bú shì wèntí le, zhǔyào shì méiyǒu shíjiān.",en:"Money's not the problem now — mainly I don't have the time."},
+  {num:1,sCn:"在公司",sEn:"In the company",who:"小丽",whoEn:"Xiaoli",
+   h:"我认为现在您有时间也不会出去玩儿。",p:"Wǒ rènwéi xiànzài nín yǒu shíjiān yě bú huì chūqu wánr.",en:"I think even if you had the time now, you wouldn't go out and enjoy yourself."},
+  {num:1,sCn:"在公司",sEn:"In the company",who:"周明",whoEn:"Zhou Ming",
+   h:"你说得对，我现在累得下了班就想睡觉。",p:"Nǐ shuō de duì, wǒ xiànzài lèi de xià le bān jiù xiǎng shuì jiào.",en:"You're right — these days I'm so tired I just want to sleep right after work."},
+
+  {num:2,sCn:"在同事家",sEn:"At a colleague's home",who:"同事",whoEn:"Colleague",
+   h:"谢谢你们来看我女儿。你送的小皮鞋和小帽子真漂亮！",p:"Xièxie nǐmen lái kàn wǒ nǚ'ér. Nǐ sòng de xiǎo píxié hé xiǎo màozi zhēn piàoliang!",en:"Thanks for coming to see my daughter. The little leather shoes and hat you gave are lovely!"},
+  {num:2,sCn:"在同事家",sEn:"At a colleague's home",who:"小丽",whoEn:"Xiaoli",
+   h:"别客气，你女儿长得白白的、胖胖的，真可爱！现在多高了？",p:"Bié kèqi, nǐ nǚ'ér zhǎng de báibái de, pàngpàng de, zhēn kě'ài! Xiànzài duō gāo le?",en:"You're welcome — your daughter is so fair and chubby, really adorable! How tall is she now?"},
+  {num:2,sCn:"在同事家",sEn:"At a colleague's home",who:"同事",whoEn:"Colleague",
+   h:"快1米了，25公斤。",p:"Kuài yì mǐ le, èrshíwǔ gōngjīn.",en:"Almost a metre, 25 kilos."},
+  {num:2,sCn:"在同事家",sEn:"At a colleague's home",who:"小丽",whoEn:"Xiaoli",
+   h:"你看她鼻子小小的，头发黑黑的；长得像谁？",p:"Nǐ kàn tā bízi xiǎoxiǎo de, tóufa hēihēi de; zhǎng de xiàng shéi?",en:"Look at her tiny nose and dark hair — who does she take after?"},
+  {num:2,sCn:"在同事家",sEn:"At a colleague's home",who:"同事",whoEn:"Colleague",
+   h:"像她爸爸，刚出生时她爸爸高兴得一个晚上都没睡着。",p:"Xiàng tā bàba, gāng chūshēng shí tā bàba gāoxìng de yí ge wǎnshang dōu méi shuì zháo.",en:"Her dad — when she was born he was so happy he couldn't sleep all night."},
+
+  {num:3,sCn:"在公司",sEn:"In the company",who:"小刚",whoEn:"Xiaogang",
+   h:"我的牙还是很疼。",p:"Wǒ de yá háishi hěn téng.",en:"My tooth still really hurts."},
+  {num:3,sCn:"在公司",sEn:"In the company",who:"同事",whoEn:"Colleague",
+   h:"如果不舒服，就去医院检查一下吧。",p:"Rúguǒ bù shūfu, jiù qù yīyuàn jiǎnchá yíxià ba.",en:"If it's bothering you, go to the hospital and get it checked."},
+  {num:3,sCn:"在公司",sEn:"In the company",who:"小刚",whoEn:"Xiaogang",
+   h:"检查好几次了，但是没什么用。",p:"Jiǎnchá hǎo jǐ cì le, dànshì méi shénme yòng.",en:"I've had it checked several times, but it hasn't helped."},
+  {num:3,sCn:"在公司",sEn:"In the company",who:"同事",whoEn:"Colleague",
+   h:"大夫怎么说的？",p:"Dàifu zěnme shuō de?",en:"What did the doctor say?"},
+  {num:3,sCn:"在公司",sEn:"In the company",who:"小刚",whoEn:"Xiaogang",
+   h:"每次医生都告诉我，回家好好儿刷牙。",p:"Měi cì yīshēng dōu gàosu wǒ, huí jiā hǎohāor shuā yá.",en:"Every time the doctor just tells me to go home and brush my teeth properly."},
+
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"很多人都觉得现在人和人的关系冷冷的，",p:"Hěn duō rén dōu juéde xiànzài rén hé rén de guānxì lěnglěng de,",en:"Many people feel that relationships between people are cold these days,"},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"这可能是因为工作太忙，忙得没时间跟别人见面，累得不愿意和别人多说话。",p:"zhè kěnéng shì yīnwèi gōngzuò tài máng, máng de méi shíjiān gēn biérén jiàn miàn, lèi de bú yuànyì hé biérén duō shuō huà.",en:"this may be because work is so busy — too busy to meet others, too tired to want to talk much with them."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"其实，我们应该多对别人笑笑，",p:"Qíshí, wǒmen yīnggāi duō duì biérén xiàoxiao,",en:"Actually, we should smile at others more,"},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"说话时如果能多用一些“您好”“谢谢”这样的词语，和别人的关系就会变得更好。",p:"shuō huà shí rúguǒ néng duō yòng yìxiē \u201cnín hǎo\u201d \u201cxièxie\u201d zhèyàng de cíyǔ, hé biérén de guānxì jiù huì biàn de gèng hǎo.",en:"and if we use words like 'hello' and 'thank you' when talking, our relationships with others will get better."}
+]},
+{num:17,cn:"谁都有办法看好你的\"病\"",en:"Everybody can cure your \"disease\"",wm:"病",active:true,newWords:[
+  {h:"请假",p:"qǐng jià",m:"to ask for leave"},
+  {h:"一共",p:"yígòng",m:"in total, altogether"},
+  {h:"邻居",p:"línjū",m:"neighbour"},
+  {h:"后来",p:"hòulái",m:"later, afterwards"},
+  {h:"爱好",p:"àihào",m:"hobby, interest"},
+  {h:"办法",p:"bànfǎ",m:"way, method"},
+  {h:"饱",p:"bǎo",m:"full (from eating)"},
+  {h:"为了",p:"wèile",m:"for the sake of; in order to"},
+  {h:"决定",p:"juédìng",m:"to decide"},
+  {h:"选择",p:"xuǎnzé",m:"to choose"},
+  {h:"冬（天）",p:"dōng(tiān)",m:"winter"},
+  {h:"必须",p:"bìxū",m:"must, have to"},
+  {h:"根据",p:"gēnjù",m:"according to, based on"},
+  {h:"情况",p:"qíngkuàng",m:"condition, situation"},
+  {h:"口",p:"kǒu",m:"mouth"},
+  {h:"渴",p:"kě",m:"thirsty"}
+],review:[
+  {h:"结婚",p:"jié hūn",m:"to get married"},
+  {h:"老朋友",p:"lǎo péngyou",m:"old friend"},
+  {h:"高",p:"gāo",m:"tall, high"},
+  {h:"男人",p:"nánrén",m:"man"},
+  {h:"了解",p:"liǎojiě",m:"to know well, understand"},
+  {h:"大学",p:"dàxué",m:"university"},
+  {h:"同学",p:"tóngxué",m:"classmate"},
+  {h:"唱歌",p:"chàng gē",m:"to sing"},
+  {h:"踢足球",p:"tī zúqiú",m:"to play football"},
+  {h:"介绍",p:"jièshào",m:"to introduce"},
+  {h:"认识",p:"rènshi",m:"to know (someone)"},
+  {h:"最近",p:"zuìjìn",m:"recently"},
+  {h:"医院",p:"yīyuàn",m:"hospital"},
+  {h:"运动",p:"yùndòng",m:"sports; to exercise"},
+  {h:"健康",p:"jiànkāng",m:"health; healthy"},
+  {h:"锻炼",p:"duànliàn",m:"to work out, exercise"},
+  {h:"爬山",p:"pá shān",m:"to climb a mountain, hike"},
+  {h:"游泳",p:"yóu yǒng",m:"to swim"}
+],grammar:[
+  {q:"Question word + 都/也 — \u201cevery / any / no\u201d one",
+   a:"谁/什么/哪儿 + 都/也 covers all cases: 谁都 = everyone, 什么都 = everything; with a negative → no one / nothing.",
+   ex:[{h:"这句话谁都懂",p:"zhè jù huà shéi dōu dǒng",en:"everyone understands this saying"},
+       {h:"他什么都会",p:"tā shénme dōu huì",en:"he can do anything"}]},
+  {q:"Two-syllable verb reduplication: ABAB",
+   a:"A disyllabic verb doubles as ABAB (not AABB) to soften it or mean \u201ca little / give it a try.\u201d (One-syllable verbs are AA.)",
+   ex:[{h:"多锻炼锻炼",p:"duō duànliàn duànliàn",en:"get a bit more exercise"},
+       {h:"检查检查",p:"jiǎnchá jiǎnchá",en:"have (it) checked out"}]},
+  {q:"Preposition 对 (duì) — \u201cto / toward / for\u201d",
+   a:"对 + target marks who or what an action or attitude is directed at, or what something affects.",
+   ex:[{h:"你对他了解吗？",p:"nǐ duì tā liǎojiě ma?",en:"do you know him well?"},
+       {h:"运动对身体好",p:"yùndòng duì shēntǐ hǎo",en:"exercise is good for the body"}]},
+  {q:"为了 (wèile) — \u201cfor the sake of / in order to\u201d",
+   a:"为了 + goal states the purpose of an action and comes before the main clause.",
+   ex:[{h:"为了健康，我应该多锻炼",p:"wèile jiànkāng, wǒ yīnggāi duō duànliàn",en:"for my health, I should exercise more"},
+       {h:"为了考试，他每天学习",p:"wèile kǎoshì, tā měi tiān xuéxí",en:"he studies every day for the exam"}]}
+],dialogue:[
+  {num:1,sCn:"在公司",sEn:"In the company",who:"小丽",whoEn:"Xiaoli",
+   h:"周经理，下个星期我可以请几天假吗？",p:"Zhōu jīnglǐ, xià ge xīngqī wǒ kěyǐ qǐng jǐ tiān jià ma?",en:"Manager Zhou, may I take a few days off next week?"},
+  {num:1,sCn:"在公司",sEn:"In the company",who:"周明",whoEn:"Zhou Ming",
+   h:"你有什么事？",p:"Nǐ yǒu shénme shì?",en:"What's it for?"},
+  {num:1,sCn:"在公司",sEn:"In the company",who:"小丽",whoEn:"Xiaoli",
+   h:"我的一个老朋友结婚，我跟他两年没见了。",p:"Wǒ de yí ge lǎo péngyou jié hūn, wǒ gēn tā liǎng nián méi jiàn le.",en:"An old friend of mine is getting married — I haven't seen him in two years."},
+  {num:1,sCn:"在公司",sEn:"In the company",who:"周明",whoEn:"Zhou Ming",
+   h:"你一共想请几天假？",p:"Nǐ yígòng xiǎng qǐng jǐ tiān jià?",en:"How many days off do you want in total?"},
+  {num:1,sCn:"在公司",sEn:"In the company",who:"小丽",whoEn:"Xiaoli",
+   h:"三天。",p:"Sān tiān.",en:"Three days."},
+
+  {num:2,sCn:"在公司",sEn:"In the company",who:"同事",whoEn:"Colleague",
+   h:"小丽，那个高高的男人是你们公司的吗？你对他了解吗？",p:"Xiǎolì, nàge gāogāo de nánrén shì nǐmen gōngsī de ma? Nǐ duì tā liǎojiě ma?",en:"Xiaoli, is that tall man from your company? Do you know him well?"},
+  {num:2,sCn:"在公司",sEn:"In the company",who:"小丽",whoEn:"Xiaoli",
+   h:"我们过去是邻居，后来是大学同学，关系一直很不错。",p:"Wǒmen guòqù shì línjū, hòulái shì dàxué tóngxué, guānxì yìzhí hěn búcuò.",en:"We used to be neighbours, later classmates at university — we've always gotten along well."},
+  {num:2,sCn:"在公司",sEn:"In the company",who:"同事",whoEn:"Colleague",
+   h:"他一般喜欢做什么？",p:"Tā yìbān xǐhuan zuò shénme?",en:"What does he usually like to do?"},
+  {num:2,sCn:"在公司",sEn:"In the company",who:"小丽",whoEn:"Xiaoli",
+   h:"他有很多爱好，唱歌、画画儿、踢足球，什么都会。",p:"Tā yǒu hěn duō àihào, chàng gē, huà huàr, tī zúqiú, shénme dōu huì.",en:"He has lots of hobbies — singing, drawing, football; he can do anything."},
+  {num:2,sCn:"在公司",sEn:"In the company",who:"同事",whoEn:"Colleague",
+   h:"真的？那你介绍我们认识认识吧。",p:"Zhēn de? Nà nǐ jièshào wǒmen rènshi rènshi ba.",en:"Really? Then introduce us so we can get to know each other."},
+  {num:2,sCn:"在公司",sEn:"In the company",who:"小丽",whoEn:"Xiaoli",
+   h:"不行，现在他是我丈夫。",p:"Bù xíng, xiànzài tā shì wǒ zhàngfu.",en:"No way — he's my husband now."},
+
+  {num:3,sCn:"在家",sEn:"At home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"最近我觉得哪儿都不舒服，你带我去医院检查检查吧。",p:"Zuìjìn wǒ juéde nǎr dōu bù shūfu, nǐ dài wǒ qù yīyuàn jiǎnchá jiǎncha ba.",en:"Lately I feel unwell all over — take me to the hospital for a check-up."},
+  {num:3,sCn:"在家",sEn:"At home",who:"周明",whoEn:"Zhou Ming",
+   h:"不用去医院，谁都有办法看好你的“病”。我问你，你多久没运动了？",p:"Búyòng qù yīyuàn, shéi dōu yǒu bànfǎ kànhǎo nǐ de \u201cbìng\u201d. Wǒ wèn nǐ, nǐ duō jiǔ méi yùndòng le?",en:"No need for the hospital — anyone can cure your \u2018illness.\u2019 Let me ask: how long since you exercised?"},
+  {num:3,sCn:"在家",sEn:"At home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"我三年没运动了。",p:"Wǒ sān nián méi yùndòng le.",en:"I haven't exercised in three years."},
+  {num:3,sCn:"在家",sEn:"At home",who:"周明",whoEn:"Zhou Ming",
+   h:"谁都知道运动对身体好。但是你吃饱了就睡。",p:"Shéi dōu zhīdào yùndòng duì shēntǐ hǎo. Dànshì nǐ chībǎole jiù shuì.",en:"Everyone knows exercise is good for you. But you eat your fill and then sleep."},
+  {num:3,sCn:"在家",sEn:"At home",who:"周太太",whoEn:"Mrs. Zhou",
+   h:"为了健康，我真应该多锻炼锻炼了。从明天起，我决定每天去长跑。",p:"Wèile jiànkāng, wǒ zhēn yīnggāi duō duànliàn duànlian le. Cóng míngtiān qǐ, wǒ juédìng měi tiān qù chángpǎo.",en:"For my health I really should exercise more. Starting tomorrow, I've decided to go running every day."},
+
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"“运动很重要”这句话谁都懂。",p:"\u201cYùndòng hěn zhòngyào\u201d zhè jù huà shéi dōu dǒng.",en:"\u2018Exercise is important\u2019 — everyone understands this saying."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"但是你知道怎么运动吗？",p:"Dànshì nǐ zhīdào zěnme yùndòng ma?",en:"But do you know how to exercise?"},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"第一，要选择“对”的时间。一般来说，早上9点是最好的时间，冬天要再晚一些。",p:"Dì yī, yào xuǎnzé \u201cduì\u201d de shíjiān. Yìbān lái shuō, zǎoshang jiǔ diǎn shì zuì hǎo de shíjiān, dōngtiān yào zài wǎn yìxiē.",en:"First, choose the \u2018right\u2019 time. Generally 9 a.m. is best; in winter make it a bit later."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"第二，要选择“对”的地点，公园、山上、游泳馆，这些地方都可以运动。",p:"Dì èr, yào xuǎnzé \u201cduì\u201d de dìdiǎn, gōngyuán, shānshang, yóuyǒngguǎn, zhèxiē dìfang dōu kěyǐ yùndòng.",en:"Second, choose the \u2018right\u2019 place — a park, hillside or pool; all are fine for exercise."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"第三，必须要根据自己的健康情况运动。",p:"Dì sān, bìxū yào gēnjù zìjǐ de jiànkāng qíngkuàng yùndòng.",en:"Third, you must exercise according to your own health condition."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"如果你很久没爬山或者游泳了，运动一会儿就一定要休息休息。",p:"Rúguǒ nǐ hěn jiǔ méi pá shān huòzhě yóu yǒng le, yùndòng yíhuìr jiù yídìng yào xiūxi xiūxi.",en:"If you haven't hiked or swum in a long time, you must rest after exercising a while."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"还要记得刚运动完口渴的时候，不要马上喝水。",p:"Hái yào jìde gāng yùndòng wán kǒu kě de shíhou, búyào mǎshàng hē shuǐ.",en:"Also remember: when you're thirsty right after exercising, don't drink water immediately."}
+]},
+{num:18,cn:"我相信他们会同意的",en:"I believe they'll agree",wm:"信",active:true,newWords:[
+  {h:"向",p:"xiàng",m:"towards; from (借/问 someone)"},
+  {h:"万",p:"wàn",m:"ten thousand"},
+  {h:"只",p:"zhī",m:"(measure word for certain animals)"},
+  {h:"嘴",p:"zuǐ",m:"mouth"},
+  {h:"动物",p:"dòngwù",m:"animal"},
+  {h:"段",p:"duàn",m:"(measure word for sections / periods)"},
+  {h:"不但……而且……",p:"búdàn…érqiě…",m:"not only… but also…"},
+  {h:"有名",p:"yǒumíng",m:"famous, well-known"},
+  {h:"同意",p:"tóngyì",m:"to agree"},
+  {h:"相信",p:"xiāngxìn",m:"to believe"},
+  {h:"关于",p:"guānyú",m:"about, regarding"},
+  {h:"机会",p:"jīhuì",m:"opportunity"},
+  {h:"国家",p:"guójiā",m:"country, nation"},
+  {h:"种",p:"zhǒng",m:"(measure word) kind, type"},
+  {h:"特点",p:"tèdiǎn",m:"feature, characteristic"},
+  {h:"奇怪",p:"qíguài",m:"strange, odd"},
+  {h:"地",p:"de",m:"(adverbial particle: [manner] 地 + verb)"}
+],review:[
+  {h:"打算",p:"dǎsuàn",m:"to plan; plan"},
+  {h:"房子",p:"fángzi",m:"house"},
+  {h:"块",p:"kuài",m:"(currency) yuan"},
+  {h:"前面",p:"qiánmian",m:"front, ahead"},
+  {h:"方便",p:"fāngbiàn",m:"convenient"},
+  {h:"狗",p:"gǒu",m:"dog"},
+  {h:"眼睛",p:"yǎnjing",m:"eye(s)"},
+  {h:"小孩儿",p:"xiǎoháir",m:"child"},
+  {h:"洗",p:"xǐ",m:"to wash"},
+  {h:"环境",p:"huánjìng",m:"environment"},
+  {h:"努力",p:"nǔlì",m:"to make great effort"},
+  {h:"姓",p:"xìng",m:"surname"},
+  {h:"人名",p:"rénmíng",m:"person's name"},
+  {h:"经过",p:"jīngguò",m:"to pass, go through"},
+  {h:"慢慢",p:"mànman",m:"slowly, gradually"},
+  {h:"家人",p:"jiārén",m:"family (members)"},
+  {h:"上班",p:"shàng bān",m:"to go to work"},
+  {h:"有些",p:"yǒuxiē",m:"some"}
+],grammar:[
+  {q:"只要 …，就 … (zhǐyào … jiù …) — meaning?",
+   a:"只要 gives a sufficient condition; the result takes 就. (Contrast 只有…才… = only if.)",
+   ex:[{h:"只要我有，就一定借给你",p:"zhǐyào wǒ yǒu, jiù yídìng jiè gěi nǐ",en:"as long as I have it, I'll lend it to you"},
+       {h:"只要你给我买，我就能照顾好它",p:"zhǐyào nǐ gěi wǒ mǎi, wǒ jiù néng zhàogù hǎo tā",en:"as long as you buy it for me, I can take good care of it"}]},
+  {q:"不但 …，而且 … (búdàn … érqiě …) — \u201cnot only …, but also …\u201d",
+   a:"Adds a second, stronger point: 不但 + first, 而且 + second (often with 还/也).",
+   ex:[{h:"不但很有名，而且工作环境好",p:"búdàn hěn yǒumíng, érqiě gōngzuò huánjìng hǎo",en:"not only famous, but also a good work environment"}]},
+  {q:"会 … 的 (huì … de) — what tone does it add?",
+   a:"会 + verb + 的 frames something as sure to happen; the final 的 strengthens the certainty.",
+   ex:[{h:"他们会同意的",p:"tāmen huì tóngyì de",en:"they'll agree (I'm sure)"},
+       {h:"我会努力的",p:"wǒ huì nǔlì de",en:"I will work hard"}]},
+  {q:"地 (de) — the adverbial particle",
+   a:"Attach 地 after a descriptive word/phrase to make it a manner adverb before the verb: [描述] + 地 + 动词.",
+   ex:[{h:"慢慢地习惯",p:"mànman de xíguàn",en:"gradually get used to it"},
+       {h:"高兴地说",p:"gāoxìng de shuō",en:"say happily"}]}
+],dialogue:[
+  {num:1,sCn:"在打电话",sEn:"On the phone",who:"朋友",whoEn:"Friend",
+   h:"老周，我打算买房子了，想向你借点儿钱。",p:"Lǎo Zhōu, wǒ dǎsuàn mǎi fángzi le, xiǎng xiàng nǐ jiè diǎnr qián.",en:"Old Zhou, I'm planning to buy a house — I'd like to borrow some money from you."},
+  {num:1,sCn:"在打电话",sEn:"On the phone",who:"周明",whoEn:"Zhou Ming",
+   h:"没问题，只要我有，就一定会借给你的。还差多少？",p:"Méi wèntí, zhǐyào wǒ yǒu, jiù yídìng huì jiè gěi nǐ de. Hái chà duōshao?",en:"No problem — as long as I have it, I'll definitely lend it to you. How much are you still short?"},
+  {num:1,sCn:"在打电话",sEn:"On the phone",who:"朋友",whoEn:"Friend",
+   h:"还差5万块钱。",p:"Hái chà wǔ wàn kuài qián.",en:"I'm still 50,000 yuan short."},
+  {num:1,sCn:"在打电话",sEn:"On the phone",who:"周明",whoEn:"Zhou Ming",
+   h:"好，钱下午打给你。你打算在哪儿买房？",p:"Hǎo, qián xiàwǔ dǎ gěi nǐ. Nǐ dǎsuàn zài nǎr mǎi fáng?",en:"Okay, I'll transfer the money this afternoon. Where are you planning to buy?"},
+  {num:1,sCn:"在打电话",sEn:"On the phone",who:"朋友",whoEn:"Friend",
+   h:"就在我们医院前面。",p:"Jiù zài wǒmen yīyuàn qiánmian.",en:"Right in front of our hospital."},
+  {num:1,sCn:"在打电话",sEn:"On the phone",who:"周明",whoEn:"Zhou Ming",
+   h:"那你以后去医院就方便了。",p:"Nà nǐ yǐhòu qù yīyuàn jiù fāngbiàn le.",en:"Then it'll be convenient for you to get to the hospital from now on."},
+
+  {num:2,sCn:"在商店",sEn:"In a store",who:"小明",whoEn:"Xiaoming",
+   h:"妈妈，你看那只狗多可爱，眼睛大大的，嘴小小的，我们买回去吧。",p:"Māma, nǐ kàn nà zhī gǒu duō kě'ài, yǎnjing dàdà de, zuǐ xiǎoxiǎo de, wǒmen mǎi huiqu ba.",en:"Mom, look how cute that dog is — big eyes, a little mouth; let's buy it and take it home."},
+  {num:2,sCn:"在商店",sEn:"In a store",who:"妈妈",whoEn:"Mom",
+   h:"动物和小孩儿一样，都需要人照顾。买回家去，谁照顾它啊？",p:"Dòngwù hé xiǎoháir yíyàng, dōu xūyào rén zhàogù. Mǎi huí jiā qu, shéi zhàogù tā a?",en:"Animals are like children — they need someone to look after them. If we buy it and bring it home, who'll take care of it?"},
+  {num:2,sCn:"在商店",sEn:"In a store",who:"小明",whoEn:"Xiaoming",
+   h:"我照顾啊。",p:"Wǒ zhàogù a.",en:"I will."},
+  {num:2,sCn:"在商店",sEn:"In a store",who:"妈妈",whoEn:"Mom",
+   h:"这段时间你自己的衣服都没洗，你能照顾好它吗？",p:"Zhè duàn shíjiān nǐ zìjǐ de yīfu dōu méi xǐ, nǐ néng zhàogù hǎo tā ma?",en:"Lately you haven't even washed your own clothes — can you really take good care of it?"},
+  {num:2,sCn:"在商店",sEn:"In a store",who:"小明",whoEn:"Xiaoming",
+   h:"只要你给我买，我就能照顾好它。",p:"Zhǐyào nǐ gěi wǒ mǎi, wǒ jiù néng zhàogù hǎo tā.",en:"As long as you buy it for me, I'll take good care of it."},
+
+  {num:3,sCn:"在公司",sEn:"In the company",who:"经理",whoEn:"Manager",
+   h:"说说你为什么选择来我们公司工作。",p:"Shuōshuo nǐ wèi shénme xuǎnzé lái wǒmen gōngsī gōngzuò.",en:"Tell me why you chose to work at our company."},
+  {num:3,sCn:"在公司",sEn:"In the company",who:"学生",whoEn:"Applicant",
+   h:"贵公司不但很有名，而且工作环境好。",p:"Guì gōngsī búdàn hěn yǒumíng, érqiě gōngzuò huánjìng hǎo.",en:"Your company is not only famous, but also has a good work environment."},
+  {num:3,sCn:"在公司",sEn:"In the company",who:"经理",whoEn:"Manager",
+   h:"做这个工作有点儿累，需要经常去外地。你家人同意吗？",p:"Zuò zhège gōngzuò yǒudiǎnr lèi, xūyào jīngcháng qù wàidì. Nǐ jiārén tóngyì ma?",en:"This job is a bit tiring and needs frequent travel out of town. Does your family agree to it?"},
+  {num:3,sCn:"在公司",sEn:"In the company",who:"学生",whoEn:"Applicant",
+   h:"只要我愿意，我相信他们就会同意的。",p:"Zhǐyào wǒ yuànyì, wǒ xiāngxìn tāmen jiù huì tóngyì de.",en:"As long as I'm willing, I believe they'll agree."},
+  {num:3,sCn:"在公司",sEn:"In the company",who:"经理",whoEn:"Manager",
+   h:"好，那你明天来上班吧。关于这个工作，还有什么问题吗？",p:"Hǎo, nà nǐ míngtiān lái shàng bān ba. Guānyú zhège gōngzuò, hái yǒu shénme wèntí ma?",en:"Good, then start tomorrow. Any other questions about the job?"},
+  {num:3,sCn:"在公司",sEn:"In the company",who:"学生",whoEn:"Applicant",
+   h:"没有了，谢谢您给我这个机会，我会努力的。",p:"Méiyǒu le, xièxie nín gěi wǒ zhège jīhuì, wǒ huì nǔlì de.",en:"No — thank you for the opportunity; I'll work hard."},
+
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"不同的国家有不同的文化，每种文化都有自己的特点。",p:"Bùtóng de guójiā yǒu bùtóng de wénhuà, měi zhǒng wénhuà dōu yǒu zìjǐ de tèdiǎn.",en:"Different countries have different cultures, and each culture has its own characteristics."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"到了一个新环境，你会觉得什么都很新鲜，而且还会觉得有点奇怪：",p:"Dàole yí ge xīn huánjìng, nǐ huì juéde shénme dōu hěn xīnxiān, érqiě hái huì juéde yǒudiǎn qíguài:",en:"In a new environment, you'll find everything fresh, and also a little strange:"},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"有些国家的人名写在姓前面，有些国家的人名写在姓后面，",p:"yǒuxiē guójiā de rénmíng xiě zài xìng qiánmian, yǒuxiē guójiā de rénmíng xiě zài xìng hòumian,",en:"in some countries the given name is written before the surname, in others after it,"},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"但是只要经过一段时间，就会慢慢地习惯。",p:"dànshì zhǐyào jīngguò yí duàn shíjiān, jiù huì mànman de xíguàn.",en:"but as long as some time passes, you'll gradually get used to it."}
+]},
+{num:19,cn:"你没看出来吗",en:"Didn't you recognise him",wm:"看",active:true,newWords:[
+  {h:"耳朵",p:"ěrduo",m:"ear"},
+  {h:"脸",p:"liǎn",m:"face"},
+  {h:"短",p:"duǎn",m:"short"},
+  {h:"马",p:"mǎ",m:"horse"},
+  {h:"张",p:"zhāng",m:"(measure word for flat objects)"},
+  {h:"位",p:"wèi",m:"(polite measure word for people)"},
+  {h:"蓝",p:"lán",m:"blue"},
+  {h:"秋（天）",p:"qiū(tiān)",m:"autumn, fall"},
+  {h:"过",p:"guò",m:"to spend, pass (time)"},
+  {h:"鸟",p:"niǎo",m:"bird"},
+  {h:"哭",p:"kū",m:"to cry"},
+  {h:"黄河",p:"Huáng Hé",m:"the Yellow River"},
+  {h:"船",p:"chuán",m:"boat, ship"},
+  {h:"经过",p:"jīngguò",m:"to pass by"}
+],review:[
+  {h:"后面",p:"hòumian",m:"behind, back"},
+  {h:"以前",p:"yǐqián",m:"before, previously"},
+  {h:"变化",p:"biànhuà",m:"change"},
+  {h:"小时候",p:"xiǎoshíhou",m:"(in) childhood"},
+  {h:"男孩子",p:"nán háizi",m:"boy"},
+  {h:"女孩子",p:"nǚ háizi",m:"girl"},
+  {h:"参加",p:"cānjiā",m:"to take part in"},
+  {h:"骑马",p:"qí mǎ",m:"to ride a horse"},
+  {h:"西服",p:"xīfú",m:"(Western) suit"},
+  {h:"衬衫",p:"chènshān",m:"shirt"},
+  {h:"运动服",p:"yùndòngfú",m:"sportswear"},
+  {h:"岁",p:"suì",m:"years (of age)"},
+  {h:"安静",p:"ānjìng",m:"quiet, calm"},
+  {h:"旅游",p:"lǚyóu",m:"to travel, tour"},
+  {h:"难忘",p:"nánwàng",m:"unforgettable"},
+  {h:"照相",p:"zhào xiàng",m:"to take a photo"},
+  {h:"听说",p:"tīngshuō",m:"to hear (that)"},
+  {h:"学",p:"xué",m:"to imitate; to learn"}
+],grammar:[
+  {q:"Directional complements — figurative / extended meanings",
+   a:"出来 = make out / recognize; 起来 = recall (or start up); 下来 = settle / calm; these go beyond literal direction.",
+   ex:[{h:"你没看出来吗？",p:"nǐ méi kàn chulai ma?",en:"didn't you recognize (him)?"},
+       {h:"我想起来了",p:"wǒ xiǎng qilai le",en:"I've remembered"}]},
+  {q:"使 / 让 / 叫 — the causative (\u201cmake / let someone …\u201d)",
+   a:"使/让/叫 + somebody + verb = cause or let them do / become something. 使 is more formal.",
+   ex:[{h:"这样可以使她的脸漂亮一些",p:"zhèyàng kěyǐ shǐ tā de liǎn piàoliang yìxiē",en:"this makes her face a bit prettier"},
+       {h:"穿运动服让他更年轻",p:"chuān yùndòngfú ràng tā gèng niánqīng",en:"wearing sportswear makes him look younger"}]},
+  {q:"看上去 / 看起来 — \u201clooks / appears …\u201d",
+   a:"看上去 (or 看起来) + description gives an impression based on looking.",
+   ex:[{h:"看上去像40多岁",p:"kàn shangqu xiàng sìshí duō suì",en:"looks like he's in his forties"},
+       {h:"看上去跟现在不太一样",p:"kàn shangqu gēn xiànzài bú tài yíyàng",en:"looks rather different from now"}]},
+  {q:"V + 下来 — settling into a state",
+   a:"Verb + 下来 can mean coming to rest or calming into a state (figurative use of 下来).",
+   ex:[{h:"她马上就安静下来了",p:"tā mǎshàng jiù ānjìng xialai le",en:"she calmed down right away"},
+       {h:"请停下来",p:"qǐng tíng xialai",en:"please stop"}]}
+],dialogue:[
+  {num:1,sCn:"在家",sEn:"At home",who:"爸爸",whoEn:"Dad",
+   h:"女儿最近喜欢把头发放在耳朵后面，你知道为什么吗？",p:"Nǚ'ér zuìjìn xǐhuan bǎ tóufa fàng zài ěrduo hòumian, nǐ zhīdào wèi shénme ma?",en:"Our daughter has been tucking her hair behind her ears lately — do you know why?"},
+  {num:1,sCn:"在家",sEn:"At home",who:"妈妈",whoEn:"Mom",
+   h:"这样可以使她的脸看上去漂亮一些。",p:"Zhèyàng kěyǐ shǐ tā de liǎn kàn shangqu piàoliang yìxiē.",en:"That way her face looks a bit prettier."},
+  {num:1,sCn:"在家",sEn:"At home",who:"爸爸",whoEn:"Dad",
+   h:"我最近觉得她和以前不太一样了。",p:"Wǒ zuìjìn juéde tā hé yǐqián bú tài yíyàng le.",en:"Lately I feel she's a bit different from before."},
+  {num:1,sCn:"在家",sEn:"At home",who:"妈妈",whoEn:"Mom",
+   h:"女儿变化不小，她小时候喜欢短头发，像男孩子一样。",p:"Nǚ'ér biànhuà bù xiǎo, tā xiǎo shíhou xǐhuan duǎn tóufa, xiàng nán háizi yíyàng.",en:"She's changed quite a bit — as a kid she liked short hair, like a boy."},
+  {num:1,sCn:"在家",sEn:"At home",who:"爸爸",whoEn:"Dad",
+   h:"我也想起来了。她现在慢慢地开始像个女孩子了。",p:"Wǒ yě xiǎng qilai le. Tā xiànzài mànman de kāishǐ xiàng ge nǚ háizi le.",en:"Now I remember too. She's gradually starting to look like a young lady."},
+
+  {num:2,sCn:"在看照片",sEn:"Looking at a photo",who:"小丽",whoEn:"Xiaoli",
+   h:"上次我们参加骑马比赛的照片，我选了几张洗出来了。",p:"Shàng cì wǒmen cānjiā qí mǎ bǐsài de zhàopiàn, wǒ xuǎnle jǐ zhāng xǐ chulai le.",en:"From the photos of the horse-riding contest we entered last time, I picked a few and had them printed."},
+  {num:2,sCn:"在看照片",sEn:"Looking at a photo",who:"同事",whoEn:"Colleague",
+   h:"快给我看看。骑得最快的这位是谁？",p:"Kuài gěi wǒ kànkan. Qí de zuì kuài de zhè wèi shì shéi?",en:"Let me see! Who's this person riding the fastest?"},
+  {num:2,sCn:"在看照片",sEn:"Looking at a photo",who:"小丽",whoEn:"Xiaoli",
+   h:"你没看出来吗？他是小刚啊。",p:"Nǐ méi kàn chulai ma? Tā shì Xiǎogāng a.",en:"You didn't recognize him? That's Xiaogang."},
+  {num:2,sCn:"在看照片",sEn:"Looking at a photo",who:"同事",whoEn:"Colleague",
+   h:"怎么看上去跟现在不太一样？",p:"Zěnme kàn shangqu gēn xiànzài bú tài yíyàng?",en:"How come he looks rather different from now?"},
+  {num:2,sCn:"在看照片",sEn:"Looking at a photo",who:"小丽",whoEn:"Xiaoli",
+   h:"他上班穿西服、衬衫，比赛的时候穿的是运动服。",p:"Tā shàng bān chuān xīfú, chènshān, bǐsài de shíhou chuān de shì yùndòngfú.",en:"At work he wears a suit and shirt; for the contest he wore sportswear."},
+  {num:2,sCn:"在看照片",sEn:"Looking at a photo",who:"同事",whoEn:"Colleague",
+   h:"他今天穿蓝西服，看上去像40多岁，还是穿运动服让他更年轻。",p:"Tā jīntiān chuān lán xīfú, kàn shangqu xiàng sìshí duō suì, háishi chuān yùndòngfú ràng tā gèng niánqīng.",en:"Today he's in a blue suit and looks over forty — sportswear makes him look younger."},
+
+  {num:3,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"朋友",whoEn:"Friend",
+   h:"我们一年没见面了吧？",p:"Wǒmen yì nián méi jiàn miàn le ba?",en:"It's been about a year since we last met, right?"},
+  {num:3,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小丽",whoEn:"Xiaoli",
+   h:"听说你都有女儿了？她多大了？",p:"Tīngshuō nǐ dōu yǒu nǚ'ér le? Tā duō dà le?",en:"I hear you have a daughter now? How old is she?"},
+  {num:3,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"朋友",whoEn:"Friend",
+   h:"她去年秋天出生的，刚过完一岁生日。",p:"Tā qùnián qiūtiān chūshēng de, gāng guòwán yí suì shēngrì.",en:"She was born last autumn — just had her first birthday."},
+  {num:3,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小丽",whoEn:"Xiaoli",
+   h:"她喜欢什么？我送给她。",p:"Tā xǐhuan shénme? Wǒ sònggěi tā.",en:"What does she like? I'll get her a gift."},
+  {num:3,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"朋友",whoEn:"Friend",
+   h:"她就喜欢听她爸爸学鸟叫。哭的时候，只要他爸爸学小鸟叫，她马上就安静下来了。",p:"Tā jiù xǐhuan tīng tā bàba xué niǎo jiào. Kū de shíhou, zhǐyào tā bàba xué xiǎo niǎo jiào, tā mǎshàng jiù ānjìng xialai le.",en:"She just loves hearing her dad imitate birdcalls. When she cries, the moment he chirps like a bird she calms right down."},
+  {num:3,sCn:"在小丽家",sEn:"At Xiaoli's home",who:"小丽",whoEn:"Xiaoli",
+   h:"啊？这个礼物我没办法送。",p:"Á? Zhège lǐwù wǒ méi bànfǎ sòng.",en:"Huh? That's a gift I have no way of giving."},
+
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"这次旅游，我去了不少地方，每个地方都让我非常难忘。",p:"Zhè cì lǚyóu, wǒ qùle bù shǎo dìfang, měi ge dìfang dōu ràng wǒ fēicháng nánwàng.",en:"On this trip I went to quite a few places, and every one was unforgettable."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"我先去看了黄河，黄河是中国有名的大河，我坐在船上，一边看一边照相。",p:"Wǒ xiān qù kànle Huáng Hé, Huáng Hé shì Zhōngguó yǒumíng de dà hé, wǒ zuò zài chuán shang, yìbiān kàn yìbiān zhào xiàng.",en:"First I went to see the Yellow River, a famous great river in China; I sat on a boat, looking and taking photos at once."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"一路上经过了很多地方，每个地方都不一样。",p:"Yí lù shang jīngguòle hěn duō dìfang, měi ge dìfang dōu bù yíyàng.",en:"Along the way I passed many places, each one different."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"我想快点儿把照片发给大家，叫朋友们也高兴高兴。",p:"Wǒ xiǎng kuài diǎnr bǎ zhàopiàn fāgěi dàjiā, jiào péngyoumen yě gāoxìng gāoxìng.",en:"I want to quickly send the photos to everyone, to let my friends share the joy too."}
+]},
+{num:20,cn:"我被他影响了",en:"I've been influenced by him",wm:"被",active:true,newWords:[
+  {h:"照相机",p:"zhàoxiàngjī",m:"camera"},
+  {h:"被",p:"bèi",m:"(passive marker) by"},
+  {h:"难过",p:"nánguò",m:"sad"},
+  {h:"东",p:"dōng",m:"east"},
+  {h:"信用卡",p:"xìnyòngkǎ",m:"credit card"},
+  {h:"关心",p:"guānxīn",m:"to care about; be interested in"},
+  {h:"只有……才……",p:"zhǐyǒu…cái…",m:"only … (can/then) …"},
+  {h:"成绩",p:"chéngjì",m:"grade, result, achievement"},
+  {h:"碗",p:"wǎn",m:"bowl"},
+  {h:"分",p:"fēn",m:"to distinguish, tell apart"},
+  {h:"解决",p:"jiějué",m:"to solve, resolve"},
+  {h:"试",p:"shì",m:"to try"},
+  {h:"真正",p:"zhēnzhèng",m:"real(ly), true(ly)"},
+  {h:"多么",p:"duōme",m:"how … (to a great extent)"}
+],review:[
+  {h:"拿走",p:"ná zǒu",m:"to take away"},
+  {h:"找不到",p:"zhǎo bu dào",m:"can't find"},
+  {h:"商场",p:"shāngchǎng",m:"shopping mall"},
+  {h:"突然",p:"tūrán",m:"suddenly"},
+  {h:"体育",p:"tǐyù",m:"sports, PE"},
+  {h:"男朋友",p:"nán péngyou",m:"boyfriend"},
+  {h:"影响",p:"yǐngxiǎng",m:"to influence; influence"},
+  {h:"爱",p:"ài",m:"love; to love"},
+  {h:"球赛",p:"qiúsài",m:"ball game, match"},
+  {h:"游戏",p:"yóuxì",m:"game"},
+  {h:"哥哥",p:"gēge",m:"older brother"},
+  {h:"认错",p:"rèn cuò",m:"to mistake (sb) for another"},
+  {h:"父母",p:"fùmǔ",m:"parents"},
+  {h:"相同",p:"xiāngtóng",m:"the same, identical"},
+  {h:"楼",p:"lóu",m:"building; floor"},
+  {h:"难题",p:"nántí",m:"difficult problem"},
+  {h:"虽然",p:"suīrán",m:"although"},
+  {h:"不过",p:"búguò",m:"however, but"}
+],grammar:[
+  {q:"被字句 — the passive with 被",
+   a:"Receiver + 被 + (doer) + Verb + extra. The doer can be left out; the verb still needs 了 or a complement.",
+   ex:[{h:"我的照相机被谁拿走了？",p:"wǒ de zhàoxiàngjī bèi shéi ná zǒu le?",en:"who took my camera? (lit. my camera was taken by whom)"},
+       {h:"我被他影响了",p:"wǒ bèi tā yǐngxiǎng le",en:"I was influenced by him"}]},
+  {q:"只有 …，才 … (zhǐyǒu … cái …) — meaning?",
+   a:"只有 gives the ONLY sufficient condition; the result takes 才. (Contrast 只要…就… = as long as.)",
+   ex:[{h:"只有真正做事情，才能了解有多难",p:"zhǐyǒu zhēnzhèng zuò shìqing, cái néng liǎojiě yǒu duō nán",en:"only by actually doing it can you understand how hard it is"},
+       {h:"只有爱才能让人有变化",p:"zhǐyǒu ài cái néng ràng rén yǒu biànhuà",en:"only love can make a person change"}]},
+  {q:"V + 起来 — \u201cwhen it comes to V-ing\u201d",
+   a:"Verb + 起来 frames an evaluation from the angle of doing it: 做起来, 看起来, 解决起来.",
+   ex:[{h:"做起来非常简单",p:"zuò qilai fēicháng jiǎndān",en:"it's very simple to do"},
+       {h:"解决起来难极了",p:"jiějué qilai nán jí le",en:"it's extremely hard to solve"}]},
+  {q:"得 (děi) — \u201cmust / have to\u201d",
+   a:"得 (děi) before a verb = need to / have to (colloquial). The negative is 不用 (need not), not 不得.",
+   ex:[{h:"得试着做做",p:"děi shìzhe zuòzuo",en:"you have to give it a try"},
+       {h:"我得走了",p:"wǒ děi zǒu le",en:"I have to go now"}]}
+],dialogue:[
+  {num:1,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiaoli",
+   h:"我的照相机被谁拿走了？怎么找不到了？",p:"Wǒ de zhàoxiàngjī bèi shéi ná zǒu le? Zěnme zhǎo bu dào le?",en:"Who took my camera? Why can't I find it?"},
+  {num:1,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"你再找找。是不是没带来？",p:"Nǐ zài zhǎozhao. Shì bu shì méi dàilai?",en:"Look again. Maybe you didn't bring it?"},
+  {num:1,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiaoli",
+   h:"我找了，没找到啊。",p:"Wǒ zhǎo le, méi zhǎodào a.",en:"I did look — I couldn't find it."},
+  {num:1,sCn:"在休息室",sEn:"In the lounge",who:"同事",whoEn:"Colleague",
+   h:"别难过，再买一个吧，公司东门外不就有一个大商场吗？",p:"Bié nánguò, zài mǎi yí ge ba, gōngsī dōngmén wài bú jiù yǒu yí ge dà shāngchǎng ma?",en:"Don't be upset — just buy another. Isn't there a big mall right outside the company's east gate?"},
+  {num:1,sCn:"在休息室",sEn:"In the lounge",who:"小丽",whoEn:"Xiaoli",
+   h:"但是我这个月信用卡里的钱已经花得差不多了。",p:"Dànshì wǒ zhège yuè xìnyòngkǎ li de qián yǐjīng huā de chà bu duō le.",en:"But I've already spent almost all the money on my credit card this month."},
+
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"你怎么突然关心起体育来了？",p:"Nǐ zěnme tūrán guānxīn qi tǐyù lai le?",en:"How come you've suddenly gotten interested in sports?"},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"朋友",whoEn:"Friend",
+   h:"我的男朋友喜欢看足球比赛，我被他影响的。",p:"Wǒ de nánpéngyou xǐhuan kàn zúqiú bǐsài, wǒ bèi tā yǐngxiǎng de.",en:"My boyfriend loves watching football — I've been influenced by him."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"看来只有爱，才能让人有变化。",p:"Kànlái zhǐyǒu ài, cái néng ràng rén yǒu biànhuà.",en:"It seems only love can really make a person change."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"朋友",whoEn:"Friend",
+   h:"是啊，为了和他的爱好一样，我天天看球赛。",p:"Shì a, wèile hé tā de àihào yíyàng, wǒ tiāntiān kàn qiúsài.",en:"Yeah — to share his hobby, I watch the matches every day."},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"小明",whoEn:"Xiaoming",
+   h:"除了足球，他还影响你什么了？",p:"Chúle zúqiú, tā hái yǐngxiǎng nǐ shénme le?",en:"Besides football, what else has he influenced you in?"},
+  {num:2,sCn:"在教室",sEn:"In the classroom",who:"朋友",whoEn:"Friend",
+   h:"我最近天天上网玩儿游戏，我的成绩差极了。",p:"Wǒ zuìjìn tiāntiān shàng wǎng wánr yóuxì, wǒ de chéngjì chà jí le.",en:"Lately I play online games every day — my grades are terrible now."},
+
+  {num:3,sCn:"在饭馆",sEn:"In the restaurant",who:"朋友",whoEn:"Friend",
+   h:"那个拿着碗吃饭的人是你哥哥吗？他和你长得真像。",p:"Nàge názhe wǎn chī fàn de rén shì nǐ gēge ma? Tā hé nǐ zhǎng de zhēn xiàng.",en:"Is that person eating with a bowl your older brother? He really looks like you."},
+  {num:3,sCn:"在饭馆",sEn:"In the restaurant",who:"大卫",whoEn:"David",
+   h:"我们经常被别人认错。",p:"Wǒmen jīngcháng bèi biérén rèncuò.",en:"People often mistake us for each other."},
+  {num:3,sCn:"在饭馆",sEn:"In the restaurant",who:"朋友",whoEn:"Friend",
+   h:"只有你们的爸爸妈妈才能分出来哪个是哥哥，哪个是弟弟吧。",p:"Zhǐyǒu nǐmen de bàba māma cái néng fēn chulai nǎge shì gēge, nǎge shì dìdi ba.",en:"Only your mom and dad can tell which is the older and which the younger, I bet."},
+  {num:3,sCn:"在饭馆",sEn:"In the restaurant",who:"大卫",whoEn:"David",
+   h:"除了父母以外，还有我们自己也能啊。",p:"Chúle fùmǔ yǐwài, hái yǒu wǒmen zìjǐ yě néng a.",en:"Besides our parents, we ourselves can too."},
+  {num:3,sCn:"在饭馆",sEn:"In the restaurant",who:"朋友",whoEn:"Friend",
+   h:"你们两个除了长得像，还有什么相同的地方？",p:"Nǐmen liǎng ge chúle zhǎng de xiàng, hái yǒu shénme xiāngtóng de dìfang?",en:"Besides looking alike, what else do you two have in common?"},
+  {num:3,sCn:"在饭馆",sEn:"In the restaurant",who:"大卫",whoEn:"David",
+   h:"我们住在同一个楼、同一个房间……",p:"Wǒmen zhù zài tóng yí ge lóu, tóng yí ge fángjiān……",en:"We live in the same building, the same room…"},
+
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"年轻人遇到难题，常常很着急，不知道怎么办。",p:"Niánqīng rén yùdào nántí, chángcháng hěn zháo jí, bù zhīdào zěnme bàn.",en:"When young people hit a tough problem, they often get anxious and don't know what to do."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"其实，不同的问题有不同的解决办法。",p:"Qíshí, bù tóng de wèntí yǒu bù tóng de jiějué bànfǎ.",en:"Actually, different problems have different solutions."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"有些问题看上去很难，但是做起来非常简单，所以得试着做做。",p:"Yǒuxiē wèntí kàn shangqu hěn nán, dànshì zuò qilai fēicháng jiǎndān, suǒyǐ děi shìzhe zuòzuo.",en:"Some problems look hard but are very simple to do, so you have to try them out."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"有些问题看上去虽然简单，但是解决起来难极了。",p:"Yǒuxiē wèntí kàn shangqu suīrán jiǎndān, dànshì jiějué qilai nán jí le.",en:"Some problems look simple but are extremely hard to solve."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"所以只有真正做事情的时候，才能了解有多难。",p:"Suǒyǐ zhǐyǒu zhēnzhèng zuò shìqing de shíhou, cái néng liǎojiě yǒu duō nán.",en:"So only when you actually do something can you understand how hard it is."},
+  {num:4,sCn:"短文",sEn:"Reading passage",who:"",whoEn:"",
+   h:"不过，我们一定要相信：多么难的问题，都会被解决的。",p:"Búguò, wǒmen yídìng yào xiāngxìn: duōme nán de wèntí, dōu huì bèi jiějué de.",en:"But we must believe: no matter how hard the problem, it will get solved."}
+]}
+];
+
+const $=id=>document.getElementById(id);
+
+/* persistence */
+const SKEY="hsk3sc:v1";
+let store={mastered:{},dates:[]}, canPersist=true;
+try{ const raw=localStorage.getItem(SKEY); if(raw){const j=JSON.parse(raw);store.mastered=j.mastered||{};store.dates=j.dates||[];}
+  localStorage.setItem(SKEY+":__t","1"); localStorage.removeItem(SKEY+":__t"); }catch(e){ canPersist=false; }
+function save(){ if(!canPersist)return; try{ localStorage.setItem(SKEY,JSON.stringify(store)); }catch(e){} }
+function markToday(){ const d=new Date().toISOString().slice(0,10); if(!store.dates.includes(d)) store.dates.push(d); }
+function isMastered(id){ return !!store.mastered[id]; }
+function setMastered(id,v){ if(v) store.mastered[id]=1; else delete store.mastered[id]; markToday(); save(); }
+function streak(){ const set=new Set(store.dates); let n=0,d=new Date(); for(;;){const k=d.toISOString().slice(0,10); if(set.has(k)){n++;d.setDate(d.getDate()-1);}else break;} return n; }
+
+/* data */
+function buildDecks(L){
+  const mk=(arr,kind,key)=>(arr||[]).map((o,i)=>Object.assign({kind:kind,deck:key,id:L.num+"."+key+"."+i},o));
+  const d={new:mk(L.newWords,"vocab","new"),review:mk(L.review,"vocab","review"),grammar:mk(L.grammar,"grammar","grammar"),dialogue:mk(L.dialogue,"dialogue","dialogue")};
+  d.all=[...d.new,...d.review,...d.grammar,...d.dialogue]; return d;
+}
+function lessonTotals(L){ if(!L.active) return {m:0,t:0}; const d=buildDecks(L); let m=0; d.all.forEach(c=>{if(isMastered(c.id))m++;}); return {m:m,t:d.all.length}; }
+
+/* home */
+function renderHome(){
+  let M=0,T=0; LESSONS.forEach(L=>{ if(L.active){const t=lessonTotals(L);M+=t.m;T+=t.t;}});
+  const pct=T?Math.round(M/T*100):0; $("ovPct").textContent=pct+"%"; $("ovBar").style.width=pct+"%";
+  const st=streak(); $("ovSub").textContent=M+" / "+T+" cards mastered · "+st+" day"+(st===1?"":"s")+" streak";
+  const list=$("list"); list.innerHTML="";
+  LESSONS.forEach(L=>{
+    const t=lessonTotals(L), p=t.t?Math.round(t.m/t.t*100):0;
+    const el=document.createElement(L.active?"button":"div");
+    el.className="lrow"+(L.active?"":" locked");
+    el.innerHTML='<div class="lbadge">'+L.num+'</div>'+
+      '<div class="ltext"><div class="lcn">'+L.cn+'</div><div class="len">'+L.en+'</div></div>'+
+      '<div class="lright">'+(L.active?'<span class="lpct">'+p+'%</span><span class="lchev">&#8250;</span>':'<span class="lsoon">soon</span>')+'</div>'+
+      (L.active?'<div class="lprog"><i style="width:'+p+'%"></i></div>':'');
+    if(L.active) el.onclick=()=>openLesson(L);
+    list.appendChild(el);
+  });
+}
+
+/* study */
+let L=null, DECKS=null, cat="new", mode="cn", queue=[], pos=0, flipped=false;
+const card=$("card");
+
+function openLesson(lesson){
+  L=lesson; DECKS=buildDecks(L);
+  $("studyTitle").innerHTML="<b>"+L.num+"</b>"+L.cn;
+  $("wm").textContent=L.wm||"汉";
+  cat="new"; mode="cn"; $("opts").hidden=true;
+  $("home").hidden=true; $("study").hidden=false;
+  $("modeSeg").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.mode==="cn"));
+  buildCats(); syncMode(); startDeck(false);
+}
+function goHome(){ if(hasTTS) speechSynthesis.cancel(); $("opts").hidden=true; $("study").hidden=true; $("home").hidden=false; renderHome(); }
+
+const CATS=[{key:"new",label:"新词 New"},{key:"review",label:"复习 Review"},{key:"grammar",label:"语法 Grammar"},{key:"dialogue",label:"对话 Dialogue"},{key:"all",label:"全部 All"}];
+function buildCats(){
+  const nav=$("cats"); nav.innerHTML="";
+  CATS.forEach(c=>{
+    const b=document.createElement("button"); b.className="pill"+(c.key===cat?" on":"");
+    b.innerHTML=c.label+' <span class="n">'+DECKS[c.key].length+'</span>';
+    b.onclick=()=>{cat=c.key;$("opts").hidden=true;buildCats();syncMode();startDeck(false);};
+    nav.appendChild(b);
+  });
+}
+function syncMode(){ const useMode=(cat==="new"||cat==="review"||cat==="all"||cat==="dialogue"); $("modeSeg").hidden=!useMode; }
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function startDeck(reshuffle){ queue=DECKS[cat].filter(c=>!isMastered(c.id)); if(reshuffle) shuffle(queue); pos=0; flipped=false; $("done").classList.remove("show"); render(); }
+function reviewAllDeck(){ queue=shuffle(DECKS[cat].slice()); pos=0; flipped=false; $("done").classList.remove("show"); render(); }
+function deckStat(){ const all=DECKS[cat]; let m=0; all.forEach(c=>{if(isMastered(c.id))m++;}); return {m:m,t:all.length}; }
+
+function render(){
+  const st=deckStat();
+  $("masterN").textContent=st.m; $("leftN").textContent=queue.length;
+  $("barFill").style.width=st.t?(st.m/st.t*100)+"%":"0%";
+  if(queue.length===0){ $("done").classList.add("show"); $("doneMsg").textContent=st.m===st.t?"All mastered! 🎉":"Round complete."; card.classList.remove("flip"); flipped=false; return; }
+  if(pos>=queue.length) pos=0;
+  const c=queue[pos]; card.classList.remove("flip"); flipped=false;
+  $("front").innerHTML=faceFront(c); $("back").innerHTML=faceBack(c);
+  maybeAutoSpeak(true);
+}
+
+function dlgFlag(c){ return mode==="en" ? "Dialogue "+c.num+" · "+c.sEn : "对话"+c.num+" · "+c.sCn; }
+const Q=s=>"\u201c"+s+"\u201d";
+
+function faceFront(c){
+  if(c.kind==="vocab"){
+    if(mode==="cn"){ const sz=c.h.length>3?"md":"lg"; return tag(c)+'<div class="hanzi '+sz+'">'+c.h+'</div><div class="hint">tap to reveal</div>'; }
+    return tag(c)+'<div class="gloss">'+c.m+'</div><div class="hint">say it in Chinese · tap to reveal</div>';
+  }
+  if(c.kind==="grammar"){ return '<div class="flag">语法 grammar</div><div class="prompt"><span class="q">'+c.q+'</span></div><div class="hint">tap to reveal</div>'; }
+  const who=mode==="en"?c.whoEn:c.who;
+  if(mode==="en"){ return '<div class="flag">'+dlgFlag(c)+'</div><div class="who">'+who+'</div><div class="en">'+Q(c.en)+'</div><div class="hint">say it in Chinese · tap to reveal</div>'; }
+  return '<div class="flag">'+dlgFlag(c)+'</div><div class="who">'+who+'</div><div class="line">'+c.h+'</div><div class="hint">tap to reveal</div>';
+}
+function faceBack(c){
+  if(c.kind==="vocab"){
+    if(mode==="cn"){ return tag(c)+'<div class="pinyin">'+c.p+'</div><div class="gloss">'+c.m+'</div>'+(c.note?'<div class="note">'+c.note+'</div>':''); }
+    const sz=c.h.length>3?"md":"lg"; return tag(c)+'<div class="hanzi '+sz+'">'+c.h+'</div><div class="pinyin">'+c.p+'</div>';
+  }
+  if(c.kind==="grammar"){
+    const ex=c.ex.map(x=>'<div class="exItem"><span class="exHan">'+x.h+'</span><span class="exPy">'+x.p+'</span><span class="exEn">'+x.en+'</span></div>').join("");
+    return '<div class="flag">语法 grammar</div><div class="en">'+c.a+'</div><div class="ex">'+ex+'</div>';
+  }
+  const who=mode==="en"?c.whoEn:c.who;
+  if(mode==="en"){ return '<div class="flag">'+dlgFlag(c)+'</div><div class="who">'+who+'</div><div class="line">'+c.h+'</div><div class="linePy">'+c.p+'</div>'; }
+  return '<div class="flag">'+dlgFlag(c)+'</div><div class="who">'+who+'</div><div class="linePy">'+c.p+'</div><div class="en">'+Q(c.en)+'</div>';
+}
+function tag(c){
+  if(c.kind==="vocab"){
+    if(cat==="all"||cat==="review"){ if(c.tag) return '<div class="badge">'+c.tag+'</div>'; }
+    if(cat==="all" && DECKS.new.includes(c)) return '<div class="badge">新</div>';
+  }
+  return "";
+}
+
+function flip(){ flipped=!flipped; card.classList.toggle("flip",flipped); if(flipped) maybeAutoSpeak(false); }
+function got(){ if(!queue.length)return; setMastered(queue[pos].id,true); queue.splice(pos,1); render(); }
+function again(){ if(!queue.length)return; setMastered(queue[pos].id,false); const x=queue.splice(pos,1)[0]; queue.push(x); render(); }
+
+/* audio */
+const hasTTS=("speechSynthesis" in window);
+let autoPlay=false, slow=false, zhVoice=null;
+function pickVoice(){ const vs=(window.speechSynthesis&&speechSynthesis.getVoices())||[]; zhVoice=vs.find(v=>/^zh/i.test(v.lang))||vs.find(v=>/Chinese|Mandarin|中文|普通话/i.test(v.name))||null; }
+if(hasTTS){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+function cnOf(c){ return c.kind==="grammar" ? c.ex.map(x=>x.h).join("，") : (c.h||""); }
+function speak(text){ if(!hasTTS||!text)return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; if(zhVoice)u.voice=zhVoice; u.rate=slow?0.6:0.95; const b=$("spkBtn"); if(b){b.classList.add("playing"); u.onend=u.onerror=()=>b.classList.remove("playing");} speechSynthesis.speak(u); }
+function speakCurrent(){ if(queue.length) speak(cnOf(queue[pos])); }
+function maybeAutoSpeak(onShow){ if(!hasTTS||!autoPlay||!queue.length)return; const c=queue[pos]; const cnFront=(mode==="cn"&&(c.kind==="vocab"||c.kind==="dialogue")); if(onShow===cnFront) speakCurrent(); }
+
+/* wiring */
+$("backBtn").onclick=goHome;
+$("doneHomeBtn").onclick=goHome;
+$("optsBtn").onclick=()=>{ $("opts").hidden=!$("opts").hidden; };
+$("studyAgainBtn").onclick=()=>startDeck(false);
+$("reviewAllBtn").onclick=reviewAllDeck;
+$("flipBtn").onclick=flip; $("gotBtn").onclick=got; $("againBtn").onclick=again;
+$("shuffleBtn").onclick=()=>{ shuffle(queue); pos=0; $("opts").hidden=true; render(); };
+$("resetBtn").onclick=()=>{ $("opts").hidden=true; startDeck(false); };
+$("modeSeg").querySelectorAll("button").forEach(b=>{ b.onclick=()=>{ mode=b.dataset.mode; $("modeSeg").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); render(); }; });
+card.onclick=flip;
+card.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){e.preventDefault();flip();} };
+document.addEventListener("keydown",e=>{ if($("study").hidden)return; if(e.target.tagName==="BUTTON")return; if(e.key==="ArrowRight"){e.preventDefault();got();} if(e.key==="ArrowLeft"){e.preventDefault();again();} });
+if(hasTTS){
+  $("spkBtn").onclick=e=>{ e.stopPropagation(); speakCurrent(); };
+  $("autoBtn").onclick=()=>{ autoPlay=!autoPlay; $("autoBtn").classList.toggle("on",autoPlay); if(autoPlay) maybeAutoSpeak(true); };
+  $("slowBtn").onclick=()=>{ slow=!slow; $("slowBtn").classList.toggle("on",slow); };
+}else{ ["spkBtn","autoBtn","slowBtn"].forEach(id=>{const el=$(id); if(el) el.style.display="none";}); }
+$("resetAll").onclick=()=>{ if(confirm("Erase all saved progress on this device?")){ store={mastered:{},dates:[]}; save(); renderHome(); } };
+
+renderHome();
+</script>
+</body>
+</html>
