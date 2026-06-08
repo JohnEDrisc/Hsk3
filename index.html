@@ -31,6 +31,7 @@
   .wrap{width:100%;max-width:560px;position:relative;z-index:1;display:flex;flex-direction:column;gap:14px}
 
   header{display:flex;align-items:flex-start;gap:13px;animation:rise .5s both}
+  .homeTheme{margin-left:auto;flex:0 0 auto;width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
   .tab{flex:0 0 auto;width:7px;align-self:stretch;min-height:46px;border-radius:4px;background:linear-gradient(var(--cinnabar),var(--cinnabar-2))}
   .titles{display:flex;flex-direction:column;gap:2px}
   .kicker{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--cinnabar-2);font-weight:600}
@@ -228,6 +229,7 @@
       <h1>课程总览 · Dashboard</h1>
       <div class="sub">Tap a chapter to study — progress saves on this device</div>
     </div>
+    <button class="homeTheme" id="homeThemeBtn" aria-label="Toggle dark mode">🌙</button>
   </header>
   <section class="dash">
     <div class="row"><h2>Overall progress</h2><div class="ovpct" id="ovPct">0%</div></div>
@@ -2613,9 +2615,13 @@ if(hasTTS){
 $("resetAll").onclick=()=>{ if(confirm("Erase all saved progress on this device?")){ store={srs:{},mastered:{},dates:[],theme:store.theme,lastLesson:null}; save(); renderHome(); } };
 $("reviewDueBtn").onclick=startReview;
 $("resumeBtn").onclick=()=>{ const ll=LESSONS.find(x=>x.num===store.lastLesson&&x.active); if(ll) openLesson(ll); };
-$("themeBtn").onclick=()=>{ const dark=!document.documentElement.classList.contains("dark"); document.documentElement.classList.toggle("dark",dark); store.theme=dark?"dark":"light"; save(); $("themeBtn").textContent=dark?"☀ Light":"🌙 Dark"; };
-if(store.theme==="dark") document.documentElement.classList.add("dark");
-$("themeBtn").textContent = (store.theme==="dark") ? "☀ Light" : "🌙 Dark";
+function setTheme(dark){ document.documentElement.classList.toggle("dark",dark); store.theme=dark?"dark":"light"; save();
+  if($("themeBtn")) $("themeBtn").textContent=dark?"☀ Light":"🌙 Dark";
+  if($("homeThemeBtn")) $("homeThemeBtn").textContent=dark?"☀":"🌙"; }
+function toggleTheme(){ setTheme(!document.documentElement.classList.contains("dark")); }
+$("themeBtn").onclick=toggleTheme;
+$("homeThemeBtn").onclick=toggleTheme;
+setTheme(store.theme==="dark");
 
 renderHome();
 </script>
