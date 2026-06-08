@@ -2,7 +2,7 @@
    Strategy: network-first for the app shell (so a redeploy shows up
    immediately while you're online), with a cached fallback so the app
    still opens and runs with no connection (e.g. on a flight). */
-const CACHE = 'hsk3-shell-v1';
+const CACHE = 'hsk3-shell-v2';
 const SHELL = ['./', './index.html'];
 
 self.addEventListener('install', (e) => {

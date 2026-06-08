@@ -33,7 +33,7 @@
   header{display:flex;align-items:flex-start;gap:13px;animation:rise .5s both}
   .homeTheme{margin-left:auto;flex:0 0 auto;width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
   .tab{flex:0 0 auto;width:7px;align-self:stretch;min-height:46px;border-radius:4px;background:linear-gradient(var(--cinnabar),var(--cinnabar-2))}
-  .titles{display:flex;flex-direction:column;gap:2px}
+  .titles{display:flex;flex-direction:column;gap:2px;flex:1 1 auto;min-width:0}
   .kicker{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--cinnabar-2);font-weight:600}
   h1{font-family:var(--han);font-size:1.4rem;font-weight:600;line-height:1.1;letter-spacing:.02em}
   .sub{font-style:italic;color:var(--ink-soft);font-size:.9rem;margin-top:1px}
@@ -242,7 +242,7 @@
   </section>
   <div class="list" id="list"></div>
   <button class="resetAll" id="resetAll">reset all progress</button>
-  <footer>All 20 lessons · 汉→EN &amp; audio inside each</footer>
+  <footer>All 20 lessons · build v2</footer>
 </div>
 
 <div id="study" hidden>
@@ -2556,13 +2556,15 @@ function openStrokesCurrent(){ if(queue.length) openStrokes(queue[pos].h); }
 function openStrokes(raw){
   const chars=cjk(raw); $("spTitle").textContent=raw; if($("spStep"))$("spStep").textContent="";
   const wrap=$("spChars"); wrap.innerHTML=""; writers=[];
+  const cs=getComputedStyle(document.documentElement);
+  const inkC=(cs.getPropertyValue("--ink")||"#241f18").trim(), cinC=(cs.getPropertyValue("--cinnabar")||"#c0402a").trim(), lineC=(cs.getPropertyValue("--line")||"#d9cdb4").trim();
   chars.forEach(ch=>{
     const cell=document.createElement("div"); cell.className="spCell";
     const t=document.createElement("div"); t.className="hwTarget"; cell.appendChild(t);
     const lab=document.createElement("div"); lab.className="hwLab"; lab.textContent=ch; cell.appendChild(lab);
     wrap.appendChild(cell);
     if(window.HanziWriter && typeof CHARDATA!=="undefined" && CHARDATA[ch]){
-      try{ const w=HanziWriter.create(t,ch,{charDataLoader:(c,onComplete)=>onComplete(CHARDATA[c]),width:170,height:170,padding:5,showOutline:true,showCharacter:true,strokeColor:"#241f18",radicalColor:"#c0402a",outlineColor:"#d9cdb4",drawingColor:"#c0402a",delayBetweenStrokes:140});
+      try{ const w=HanziWriter.create(t,ch,{charDataLoader:(c,onComplete)=>onComplete(CHARDATA[c]),width:170,height:170,padding:5,showOutline:true,showCharacter:true,strokeColor:inkC,radicalColor:cinC,outlineColor:lineC,drawingColor:cinC,delayBetweenStrokes:140});
         writers.push(w); t.style.cursor="pointer"; t.onclick=()=>{ try{w.animateCharacter();}catch(e){} }; }
       catch(e){ t.classList.add("hwFallback"); t.textContent=ch; }
     } else { t.classList.add("hwFallback"); t.textContent=ch; }
