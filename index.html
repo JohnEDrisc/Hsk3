@@ -191,7 +191,7 @@
   .vstroke:active{transform:scale(.97)}
   .dlineB{font-family:var(--han);font-weight:600;font-size:clamp(1.1rem,4.4vw,1.5rem);line-height:1.45;color:var(--ink);max-width:24ch;margin-bottom:2px}
   /* ===== stroke-practice panel ===== */
-  #strokePanel{position:absolute;inset:0;z-index:40;background:rgba(36,31,24,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+  #strokePanel{position:fixed;inset:0;z-index:60;background:rgba(36,31,24,.45);display:flex;align-items:center;justify-content:center;padding:16px}
   #strokePanel[hidden]{display:none}
   .spInner{width:100%;max-width:420px;max-height:100%;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:15px 16px 17px;display:flex;flex-direction:column;gap:13px}
   .spHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -217,7 +217,28 @@
   .dark{ color-scheme:dark;
     --paper:#1b1712;--paper-2:#232019;--card:#2a251d;--ink:#efe7d6;--ink-soft:#cabda6;--muted:#9a8c74;
     --line:#3b3327;--cinnabar:#e0694f;--cinnabar-2:#ec8169;--cinnabar-tint:#3a241d;--gold:#ca9a5a;
-    --shadow:0 22px 50px -28px rgba(0,0,0,.75),0 6px 18px -10px rgba(0,0,0,.55);}
+    --shadow:0 22px 50px -28px rgba(0,0,0,.75),0 6px 18px -10px rgba(0,0,0,.55);}  /* ===== radical explainer ===== */
+  .radTap{font-family:var(--han);font-size:1.15rem;color:var(--cinnabar-2);background:var(--cinnabar-tint);border:1px solid var(--line);border-radius:8px;padding:0 7px;margin:0 1px;cursor:pointer;line-height:1.5;vertical-align:middle}
+  #radListPanel,#radPanel{position:fixed;inset:0;background:rgba(36,31,24,.5);display:flex;align-items:center;justify-content:center;padding:16px}
+  #radListPanel{z-index:45}
+  #radPanel{z-index:50}
+  #radListPanel[hidden],#radPanel[hidden]{display:none}
+  .rlInner,.rpInner{width:100%;max-width:440px;max-height:100%;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:15px 16px 18px;display:flex;flex-direction:column;gap:12px}
+  .rlHead,.rpHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .rlTitle{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--ink)}
+  .rlBody{display:flex;flex-direction:column;gap:7px}
+  .rlRow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:9px 12px;cursor:pointer}
+  .rlRow:active{transform:scale(.99)}
+  .rlGlyph{font-family:var(--han);font-size:1.6rem;color:var(--cinnabar-2);flex:0 0 auto;width:34px;text-align:center;line-height:1}
+  .rlMean{font-family:var(--display);font-size:.92rem;color:var(--ink-soft);flex:1 1 auto;min-width:0}
+  .rlN{font-family:var(--display);font-weight:700;font-size:.78rem;color:#fdf6ec;background:var(--cinnabar);border-radius:999px;padding:2px 9px;flex:0 0 auto}
+  .rpGlyph{font-family:var(--han);font-size:3.2rem;color:var(--cinnabar-2);line-height:1}
+  .rpMean{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--ink);margin-top:-4px}
+  .rpNote{font-family:var(--display);font-size:.92rem;color:var(--ink-soft);line-height:1.5}
+  .rpCount{font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .rpChars{display:flex;flex-wrap:wrap;gap:8px}
+  .rpChar{font-family:var(--han);font-size:1.5rem;color:var(--ink);background:var(--paper-2);border:1px solid var(--line);border-radius:11px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .rpChar:active{transform:scale(.95);border-color:var(--cinnabar)}
 </style>
 </head>
 <body>
@@ -238,11 +259,12 @@
     <div class="dashbtns">
       <button class="dashcta" id="reviewDueBtn" hidden></button>
       <button class="dashcta alt" id="resumeBtn" hidden></button>
+      <button class="dashcta alt" id="radBtn">部首 · Radical explorer</button>
     </div>
   </section>
   <div class="list" id="list"></div>
   <button class="resetAll" id="resetAll">reset all progress</button>
-  <footer>All 20 lessons · build v2</footer>
+  <footer>All 20 lessons · build v3</footer>
 </div>
 
 <div id="study" hidden>
@@ -287,13 +309,29 @@
       <button class="act got" id="gotBtn">✓ Got it</button>
     </div>
   </div>
-  <div id="strokePanel" hidden>
-    <div class="spInner">
-      <div class="spHead"><div style="display:flex;align-items:baseline;gap:10px"><span id="spTitle"></span><span class="spStep" id="spStep"></span></div><button class="iconbtn" id="spClose" aria-label="Close">&#10005;</button></div>
-      <div class="spChars" id="spChars"></div>
-      <div class="spBtns"><button class="gbtn" id="spAnimate">▶ Animate</button><button class="gbtn" id="spTrace">✍ Trace</button></div>
-      <div class="spHint">Tap a character to replay its strokes · Trace to write it yourself</div>
-    </div>
+</div>
+
+<div id="radListPanel" hidden>
+  <div class="rlInner">
+    <div class="rlHead"><span class="rlTitle">部首 · Radicals</span><button class="iconbtn" id="rlClose" aria-label="Close">&#10005;</button></div>
+    <div class="rlBody" id="rlList"></div>
+  </div>
+</div>
+<div id="radPanel" hidden>
+  <div class="rpInner">
+    <div class="rpHead"><div class="rpGlyph" id="rpGlyph"></div><button class="iconbtn" id="rpClose" aria-label="Close">&#10005;</button></div>
+    <div class="rpMean" id="rpMean"></div>
+    <div class="rpNote" id="rpNote"></div>
+    <div class="rpCount" id="rpCount"></div>
+    <div class="rpChars" id="rpChars"></div>
+  </div>
+</div>
+<div id="strokePanel" hidden>
+  <div class="spInner">
+    <div class="spHead"><div style="display:flex;align-items:baseline;gap:10px"><span id="spTitle"></span><span class="spStep" id="spStep"></span></div><button class="iconbtn" id="spClose" aria-label="Close">&#10005;</button></div>
+    <div class="spChars" id="spChars"></div>
+    <div class="spBtns"><button class="gbtn" id="spAnimate">▶ Animate</button><button class="gbtn" id="spTrace">✍ Trace</button></div>
+    <div class="spHint">Tap a character to replay its strokes · Trace to write it yourself</div>
   </div>
 </div>
 
@@ -2535,13 +2573,68 @@ function tag(c){
 
 /* ---- character extras: radicals, example sentence, stroke practice ---- */
 let curEx=null, writers=[];
+const RADNOTE={
+"口":"A pictograph of an open mouth — marks speaking, eating, and openings (吃 eat, 听 listen, 名 name).",
+"木":"A pictograph of a tree with branches and roots — marks wood, trees, and wooden things (树 tree, 板 board, 杯 cup).",
+"讠":"The compressed left-side form of 言 (speech) — marks talking and language (说 speak, 语 language, 请 please).",
+"亻":"The left-side form of 人 (person) — marks people and human actions (你 you, 住 live, 做 do).",
+"扌":"The left-side form of 手 (hand) — marks actions done with the hands (打 hit, 找 seek, 提 lift).",
+"氵":"The 'three drops' left-side form of 水 (water) — marks liquids and water (河 river, 洗 wash, 游 swim).",
+"心":"A pictograph of a heart — feelings and the mind, usually at the bottom (想 think, 感 feel, 急 anxious).",
+"忄":"The left-side form of 心 (heart) — feelings and mind when it stands on the left (忙 busy, 怕 fear, 情 feeling).",
+"日":"A pictograph of the sun — marks time, days, and brightness (时 time, 明 bright, 春 spring).",
+"月":"A pictograph of the moon — marks the moon and months (期 period, 朋 friend). Looks identical to the 'flesh' radical.",
+"⺼":"The 'flesh/meat' radical (from 肉) — looks like 月 but marks body parts (脸 face, 脚 foot, 脑 brain).",
+"辶":"The 'walk' radical (from 辵), wrapping the bottom-left — movement, roads, travel (过 pass, 还 return, 道 road).",
+"宀":"Depicts a roof — marks buildings and the home (家 home, 安 peace, 室 room).",
+"⺮":"Two stalks of bamboo on top — bamboo objects: brushes, baskets, tallies (笔 pen, 笑 laugh, 算 count).",
+"目":"A pictograph of an eye — marks seeing and the eyes (看 look, 眼 eye, 睡 sleep).",
+"纟":"The left-side form of 糸 (silk thread) — thread, fabric, binding (经 pass through, 练 practice, 结 tie).",
+"艹":"The 'grass' radical on top — plants, herbs, and vegetables (花 flower, 茶 tea, 菜 vegetable).",
+"阝":"Two radicals in one shape: on the LEFT it is 阜 mound/hill (阳, 院); on the RIGHT it is 邑 city/place (那, 邮).",
+"女":"A pictograph of a kneeling woman — women and family relations (好 good, 妈 mom, 姓 surname).",
+"钅":"The left-side form of 金 (metal/gold) — marks metals (钱 money, 银 silver, 镜 mirror).",
+"冫":"The 'two drops' ice radical — marks cold and ice (冷 cold, 冰 ice, 凉 cool).",
+"大":"A person standing with arms outstretched — marks bigness (太 too, 天 sky, 头 head).",
+"人":"A pictograph of a standing person — marks people (今 now, 会 can, 从 follow).",
+"刂":"The right-side form of 刀 (knife) — cutting and blades (别 don't, 到 arrive, 刻 carve).",
+"又":"A pictograph of a right hand — hands and repeated action (友 friend, 双 pair, 发 issue).",
+"土":"A mound of earth — ground, soil, and places (地 ground, 城 city, 坐 sit).",
+"巾":"A hanging cloth — fabric and cloth items (带 belt, 帽 hat, 常 often).",
+"王":"The 'jade' radical (玉 with its dot dropped) — jade and precious stones (玩 play, 球 ball, 现 appear).",
+"力":"A flexed arm or plow — strength and effort (办 handle, 动 move, 努 strive).",
+"囗":"A full enclosure, a box — surrounded things (国 country, 园 garden, 回 return).",
+"子":"A pictograph of a baby — children and the young (字 character, 学 study, 孩 child).",
+"广":"A roofed shelter open on one side — buildings (店 shop, 床 bed, 康 healthy).",
+"灬":"The 'four dots' bottom form of 火 (fire) — heat and fire (热 hot, 点 light, 照 shine).",
+"火":"A pictograph of flames — fire and heat (灯 lamp, 烧 burn, 炼 refine).",
+"衤":"The left-side form of 衣 (clothing) — garments (衬, 裙, 裤). The look-alike 礻 has one fewer dot.",
+"走":"A running person — running and movement (起 rise, 越 exceed, 超 surpass).",
+"饣":"The left-side form of 食 (food/eat) — food and eating (饭 meal, 饿 hungry, 馆 hall).",
+"攵":"The 'tap/strike' radical (from 攴), a hand with a stick — actions imposed on something (教 teach, 放 release, 数 count).",
+"田":"A field divided into plots — fields and farming (男 male, 界 boundary, 留 remain).",
+"禾":"A grain plant bending with ripeness — crops and cereals (秋 autumn, 种 seed, 租 rent).",
+"足":"A pictograph of a foot and leg — feet, walking, kicking (跟 heel, 路 road, 踢 kick).",
+"车":"A cart seen from above — vehicles (轻 light, 较 compare, 辆 vehicle measure word).",
+"门":"A two-leaf door — doors and gates (问 ask, 间 between, 闻 hear).",
+"欠":"A person with mouth open, exhaling — breath, yawning, desire (歌 song, 欢 joy, 次 time).",
+"方":"A plow or banner — often signals direction and frequently carries the sound (旁 beside, 旅 travel, 放 release).",
+"八":"Two strokes splitting apart — dividing or pairs (公 public, 共 together, 分 divide).",
+"十":"A complete cross — the number ten and wholeness (半 half, 南 south, 卖 sell).",
+"戈":"A pictograph of a dagger-axe (halberd) — weapons and conflict (成 accomplish, 或 or, 战 war).",
+"儿":"The 'legs' radical, a person's legs at the bottom — marks people (元 first, 先 before, 光 light)."
+};
+const RADIDX=(function(){ const m={}; if(typeof RAD==="undefined") return m;
+  for(const ch in RAD){ const r=RAD[ch]&&RAD[ch].r; if(!r) continue; if(!m[r]) m[r]={mean:"",chars:[]}; m[r].chars.push(ch); if(!m[r].mean&&RAD[ch].rm) m[r].mean=RAD[ch].rm; }
+  return m; })();
 function cjk(s){ return [...String(s)].filter(ch=>ch>="\u4e00"&&ch<="\u9fff"); }
 function radicalHTML(raw){
   const rows=cjk(raw).map(ch=>{ const r=(typeof RAD!=="undefined")&&RAD[ch]; if(!r) return "";
-    const rad=r.r?(r.r+(r.rm?' <span class="vradEn">('+r.rm+')</span>':'')):'\u2014';
+    const radBtn=r.r?'<button class="radTap" onclick="event.stopPropagation();openRadical(\''+r.r+'\')">'+r.r+'</button>':'\u2014';
+    const radEn=r.rm?' <span class="vradEn">('+r.rm+')</span>':'';
     const comp=r.comp?' \u00b7 '+r.comp:'';
-    return '<div class="vradRow"><span class="vradChar">'+ch+'</span><span class="vradInfo">radical '+rad+comp+'</span></div>'; }).join("");
-  return rows?'<div class="vrad"><div class="vxHdr">radical &amp; build</div>'+rows+'</div>':"";
+    return '<div class="vradRow"><span class="vradChar">'+ch+'</span><span class="vradInfo">radical '+radBtn+radEn+comp+'</span></div>'; }).join("");
+  return rows?'<div class="vrad"><div class="vxHdr">radical &amp; build · tap a radical</div>'+rows+'</div>':"";
 }
 function exampleHTML(raw){
   const arr=(typeof EX!=="undefined"&&EX[raw])||null; if(!arr||!arr.length){ curEx=null; return ""; }
@@ -2581,6 +2674,32 @@ function strokeSeq(method,i){ i=i||0; const cells=$("spChars").children;
   try{ const r=writers[i][method]({onComplete:go}); if(r&&typeof r.then==="function") r.then(go); }catch(e){ go(); } }
 $("spAnimate").onclick=()=>strokeSeq("animateCharacter",0);
 $("spTrace").onclick=()=>strokeSeq("quiz",0);
+
+function openRadical(r){ if(!r) return;
+  const info=RADIDX[r]||{mean:((typeof RAD!=="undefined"&&RAD[r]&&RAD[r].rm)||""),chars:[]};
+  $("rpGlyph").textContent=r;
+  $("rpMean").textContent=info.mean||"";
+  const note=(typeof RADNOTE!=="undefined")&&RADNOTE[r];
+  $("rpNote").textContent=note||""; $("rpNote").style.display=note?"block":"none";
+  const chars=info.chars||[];
+  $("rpCount").textContent=chars.length?(chars.length+" character"+(chars.length===1?"":"s")+" you're learning · tap to practice"):"";
+  const grid=$("rpChars"); grid.innerHTML="";
+  chars.forEach(ch=>{ const b=document.createElement("button"); b.className="rpChar"; b.textContent=ch; b.onclick=()=>openStrokes(ch); grid.appendChild(b); });
+  $("radPanel").hidden=false;
+}
+function openRadList(){
+  const list=$("rlList"); list.innerHTML="";
+  Object.keys(RADIDX).sort((a,b)=>RADIDX[b].chars.length-RADIDX[a].chars.length).forEach(r=>{
+    const b=document.createElement("button"); b.className="rlRow";
+    b.innerHTML='<span class="rlGlyph">'+r+'</span><span class="rlMean">'+(RADIDX[r].mean||"")+'</span><span class="rlN">'+RADIDX[r].chars.length+'</span>';
+    b.onclick=()=>openRadical(r);
+    list.appendChild(b);
+  });
+  $("radListPanel").hidden=false;
+}
+$("rpClose").onclick=()=>{ $("radPanel").hidden=true; };
+$("rlClose").onclick=()=>{ $("radListPanel").hidden=true; };
+$("radBtn").onclick=openRadList;
 
 function flip(){ flipped=!flipped; if(flipped && queue.length) $("back").innerHTML=faceBack(queue[pos]); card.classList.toggle("flip",flipped); if(flipped) maybeAutoSpeak(false); }
 function got(){ if(!queue.length)return; schedule(queue[pos].id,true); queue.splice(pos,1); render(); }
