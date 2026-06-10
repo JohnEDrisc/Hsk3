@@ -211,6 +211,12 @@
   .vxbtns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
   .dueBtn.dueFuture{color:var(--muted);box-shadow:none;cursor:default;font-weight:600}
   .dueBtn{margin-top:12px;width:100%;border:1px solid var(--line);background:var(--card);color:var(--cinnabar-2);border-radius:12px;padding:11px;font-weight:700;font-family:var(--display);font-size:.9rem;cursor:pointer;box-shadow:var(--shadow)}
+  .homeCtrl{display:flex;align-items:center;gap:6px;padding:10px 16px 4px;flex-wrap:wrap}
+  .hcBtn{font-size:.88rem;padding:6px 12px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);border-radius:10px;cursor:pointer;font-family:var(--display);font-weight:600;transition:background .15s}
+  .hcBtn.on{background:var(--cinnabar-tint);color:var(--cinnabar-2);border-color:var(--cinnabar-2)}
+  .hcSep{width:1px;height:22px;background:var(--line);margin:0 2px}
+  .floatZoom{position:absolute;top:8px;right:10px;z-index:10;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:1.1rem;cursor:pointer;color:var(--muted);opacity:.7}
+  .floatZoom:active{opacity:1}
   .appFoot{position:fixed;left:0;right:0;bottom:max(2px,env(safe-area-inset-bottom));text-align:center;font-size:.6rem;color:var(--muted);z-index:5;pointer-events:none;opacity:.8;font-family:var(--display)}
   .vrad{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:9px 11px;display:flex;flex-direction:column;gap:5px}
   .vradRow{display:flex;align-items:baseline;gap:9px}
@@ -233,7 +239,7 @@
   #spTitle{font-family:var(--han);font-size:1.5rem;color:var(--ink);line-height:1}
   .spChars{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
   .spCell{display:flex;flex-direction:column;align-items:center;gap:5px}
-  .hwTarget{width:92px;height:92px;border:1px solid var(--line);border-radius:12px;background:var(--paper-2)}
+  .hwTarget{width:160px;height:160px;border:1px solid var(--line);border-radius:14px;background:var(--paper-2);touch-action:none}
   .hwLab{font-family:var(--han);font-size:.95rem;color:var(--cinnabar-2)}
   .hwFallback{display:flex;align-items:center;justify-content:center;font-family:var(--han);font-size:2.4rem;color:var(--ink)}
   .spBtns{display:flex;gap:9px;justify-content:center}
@@ -256,6 +262,16 @@
     <div class="ovsub" id="ovSub">0 / 0 cards mastered</div>
     <button class="dueBtn" id="dueBtn" hidden></button>
   </section>
+  <div class="homeCtrl">
+    <button class="hcBtn" id="homeDarkBtn" onclick="toggleTheme()">&#x1f319;</button>
+    <span class="hcSep"></span>
+    <button class="hcBtn lvlBtn" data-lvl="3">3</button>
+    <button class="hcBtn lvlBtn" data-lvl="4">4</button>
+    <button class="hcBtn lvlBtn" data-lvl="5">5</button>
+    <span class="hcSep"></span>
+    <button class="hcBtn" id="homeExportBtn" onclick="exportProgress()">&#x2b06;</button>
+    <button class="hcBtn" id="homeImportBtn">&#x2b07;</button>
+  </div>
   <div class="list" id="list"></div>
   <button class="resetAll" id="resetAll">reset all progress</button>
   <footer>All 20 lessons · 汉→EN &amp; audio inside each</footer>
@@ -272,6 +288,8 @@
       <div class="optrow"><span>Audio</span><div style="display:flex;gap:8px"><button class="gbtn" id="autoBtn">▶ Auto</button><button class="gbtn" id="slowBtn">🐢 1×</button></div></div>
       <div class="optrow"><span>Theme</span><div style="display:flex;gap:8px"><button class="gbtn" id="darkBtn">🌙 Dark</button></div></div>
       <div class="optrow"><span>Level</span><div style="display:flex;gap:6px"><button class="gbtn lvlBtn" data-lvl="3">HSK 3</button><button class="gbtn lvlBtn" data-lvl="4">HSK 4</button><button class="gbtn lvlBtn" data-lvl="5">HSK 5</button></div></div>
+      <div class="optrow"><span>Backup</span><div style="display:flex;gap:8px"><button class="gbtn" id="exportBtn">⬆ Export</button><button class="gbtn" id="importBtn">⬇ Import</button></div></div>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
       <div class="optrow"><span>Deck</span><div style="display:flex;gap:8px"><button class="gbtn" id="shuffleBtn">⤮ Shuffle</button><button class="gbtn" id="resetBtn">↺ Reset</button></div></div>
     </div>
     <nav class="cats" id="cats"></nav>
@@ -280,6 +298,7 @@
       <div class="counts"><b id="masterN">0</b> mastered · <b id="leftN">0</b> left</div>
     </div>
     <div class="bar"><i id="barFill"></i></div>
+    <button class="floatZoom" id="floatZoomBtn" onclick="zoomCurrent()" title="Zoom character">&#x1f50d;</button>
     <div class="stage">
       <div class="watermark" id="wm">汉</div>
       <div class="card" id="card" role="button" tabindex="0" aria-label="Flashcard, tap to flip">
@@ -2428,7 +2447,12 @@ function openDueReview(){
 }
 /* ---- theme ---- */
 let darkMode=false; try{ darkMode=localStorage.getItem("hsk3sc:theme")==="dark"; }catch(e){}
-function applyTheme(){ document.body.classList.toggle("dark",darkMode); const b=$("darkBtn"); if(b){ b.textContent=darkMode?"\u2600\ufe0f Light":"\ud83c\udf19 Dark"; b.classList.toggle("on",darkMode); } }
+function applyTheme(){
+  document.body.classList.toggle("dark",darkMode);
+  const icon=darkMode?"\u2600\ufe0f":"\ud83c\udf19";
+  const b=$("darkBtn"); if(b){ b.textContent=icon+" "+(darkMode?"Light":"Dark"); b.classList.toggle("on",darkMode); }
+  const hb=$("homeDarkBtn"); if(hb){ hb.textContent=icon; hb.classList.toggle("on",darkMode); }
+}
 function toggleTheme(){ darkMode=!darkMode; try{ localStorage.setItem("hsk3sc:theme",darkMode?"dark":"light"); }catch(e){} applyTheme(); }
 /* ---- levels ---- */
 const LEVELS={3:{label:"HSK 3",builtin:true},4:{label:"HSK 4",url:"hsk4.json"},5:{label:"HSK 5",url:"hsk5.json"},6:{label:"HSK 6",url:"hsk6.json"}};
@@ -2449,6 +2473,19 @@ async function setLevel(n){ n=parseInt(n,10); if(!LEVELS[n]||n===LEVEL){ syncLev
 /* ---- character zoom ---- */
 function zoomChar(str){ const p=$("zoomPanel"); if(!p) return; const arr=[...String(str)]; const z=$("zoomChar"); z.textContent=str; z.style.fontSize="min("+Math.max(18,Math.floor(86/Math.max(1,arr.length)))+"vw,340px)"; p.hidden=false; const sb=$("zoomStrokeBtn"); if(sb) sb.onclick=e=>{ e.stopPropagation(); p.hidden=true; openStrokes(str); }; }
 function zoomCurrent(){ if(!queue.length) return; const cs=cjkArr(queue[pos].h).join(""); if(cs) zoomChar(cs); }
+/* ---- progress backup ---- */
+function backupPayload(){ const data={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.indexOf("hsk")===0) data[k]=localStorage.getItem(k); } }catch(e){} return {v:1,app:"hsk-flashcards",exported:new Date().toISOString(),data:data}; }
+function exportProgress(){ save();
+  try{
+    const blob=new Blob([JSON.stringify(backupPayload(),null,2)],{type:"application/json"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+    a.download="hsk-progress-"+new Date().toISOString().slice(0,10)+".json";
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ try{URL.revokeObjectURL(a.href);}catch(e){} a.remove(); },800);
+  }catch(e){ try{alert("Export failed: "+e.message);}catch(_e){} }
+}
+function applyImport(j){ if(!j||j.v!==1||!j.data||typeof j.data!=="object") return 0; let n=0; for(const k in j.data){ if(k.indexOf("hsk")===0&&typeof j.data[k]==="string"){ try{ localStorage.setItem(k,j.data[k]); n++; }catch(e){} } } return n; }
+function importProgress(file){ const r=new FileReader(); r.onload=()=>{ let n=0; try{ n=applyImport(JSON.parse(r.result)); }catch(e){} if(n>0){ try{alert("Imported "+n+" item(s) \u00b7 reloading\u2026");}catch(e){} location.reload(); } else { try{alert("Could not read that backup file.");}catch(e){} } }; r.readAsText(file); }
 function markToday(){ const d=new Date().toISOString().slice(0,10); if(!store.dates.includes(d)) store.dates.push(d); }
 function isMastered(id){ return !!store.mastered[id]; }
 function setMastered(id,v){ if(v) store.mastered[id]=1; else delete store.mastered[id]; markToday(); save(); }
@@ -2651,7 +2688,7 @@ function openStrokes(raw){
     const lab=document.createElement("div"); lab.className="hwLab"; lab.textContent=ch; cell.appendChild(lab);
     wrap.appendChild(cell);
     if(window.HanziWriter){
-      try{ const w=HanziWriter.create(t,ch,{width:92,height:92,padding:4,showOutline:true,showCharacter:true,strokeColor:"#241f18",radicalColor:"#c0402a",outlineColor:"#d9cdb4",drawingColor:"#c0402a",delayBetweenStrokes:140});
+      try{ const w=HanziWriter.create(t,ch,{width:160,height:160,padding:8,showOutline:true,showCharacter:true,strokeColor:"#241f18",radicalColor:"#c0402a",outlineColor:"#d9cdb4",drawingColor:"#c0402a",delayBetweenStrokes:140,leniency:1.5,averageDistanceThreshold:500,drawingWidth:6,showHintAfterMisses:2});
         writers.push(w); t.style.cursor="pointer"; t.onclick=()=>{ try{w.animateCharacter();}catch(e){} }; }
       catch(e){ t.classList.add("hwFallback"); t.textContent=ch; }
     } else { t.classList.add("hwFallback"); t.textContent=ch; }
@@ -2661,7 +2698,7 @@ function openStrokes(raw){
 function closeStrokes(){ $("strokePanel").hidden=true; $("spChars").innerHTML=""; writers=[]; }
 $("spClose").onclick=closeStrokes;
 $("spAnimate").onclick=()=>writers.forEach((w,i)=>setTimeout(()=>{ try{w.animateCharacter();}catch(e){} },i*750));
-$("spTrace").onclick=()=>writers.forEach(w=>{ try{w.quiz();}catch(e){} });
+$("spTrace").onclick=()=>writers.forEach(w=>{ try{w.quiz({leniency:1.5,averageDistanceThreshold:500,drawingWidth:6,showHintAfterMisses:2});}catch(e){} });
 
 function flip(){ flipped=!flipped; card.classList.toggle("flip",flipped); syncSpk(); if(flipped) maybeAutoSpeak(false); }
 function got(){ if(!queue.length)return; const id=queue[pos].id; srsTouch(id,true); setMastered(id,true); queue.splice(pos,1); render(); }
@@ -2707,6 +2744,10 @@ if(hasTTS){
   document.querySelectorAll(".lvlBtn").forEach(b=>{ b.onclick=()=>setLevel(b.dataset.lvl); });
   syncLevelUI();
   const dub=$("dueBtn"); if(dub) dub.onclick=openDueReview;
+  const exb=$("exportBtn"); if(exb) exb.onclick=exportProgress;
+  const imb=$("importBtn"), imf=$("importFile");
+  if(imb&&imf){ imb.onclick=()=>imf.click(); imf.onchange=()=>{ if(imf.files&&imf.files[0]) importProgress(imf.files[0]); imf.value=""; }; }
+  const himb=$("homeImportBtn"); if(himb&&imf) himb.onclick=()=>imf.click();
   try{ const sl=parseInt(localStorage.getItem("hsk:level")||"3",10); if(sl!==3&&LEVELS[sl]) setLevel(sl); }catch(e){}
 $("resetAll").onclick=()=>{ if(confirm("Erase all saved progress on this device?")){ store={mastered:{},dates:[],srs:{}}; save(); renderHome(); } };
 
@@ -2716,6 +2757,6 @@ renderHome();
   <div class="zoomChar" id="zoomChar"></div>
   <div class="zoomHint">tap anywhere to close · <button class="zoomStroke" id="zoomStrokeBtn">✍ practice strokes</button></div>
 </div>
-<div class="appFoot" id="appFoot">build v10 · 2026-06-10</div>
+<div class="appFoot" id="appFoot">build v12 · 2026-06-10</div>
 </body>
 </html>
