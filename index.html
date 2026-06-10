@@ -209,6 +209,7 @@
   .zoomHint{font-size:.75rem;color:rgba(253,246,236,.75)}
   .zoomStroke{border:1px solid rgba(253,246,236,.4);background:transparent;color:#fdf6ec;border-radius:8px;padding:4px 10px;font-size:.75rem;cursor:pointer}
   .vxbtns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .dueBtn.dueFuture{color:var(--muted);box-shadow:none;cursor:default;font-weight:600}
   .dueBtn{margin-top:12px;width:100%;border:1px solid var(--line);background:var(--card);color:var(--cinnabar-2);border-radius:12px;padding:11px;font-weight:700;font-family:var(--display);font-size:.9rem;cursor:pointer;box-shadow:var(--shadow)}
   .appFoot{position:fixed;left:0;right:0;bottom:max(2px,env(safe-area-inset-bottom));text-align:center;font-size:.6rem;color:var(--muted);z-index:5;pointer-events:none;opacity:.8;font-family:var(--display)}
   .vrad{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:9px 11px;display:flex;flex-direction:column;gap:5px}
@@ -2467,7 +2468,13 @@ function renderHome(){
   const pct=T?Math.round(M/T*100):0; $("ovPct").textContent=pct+"%"; $("ovBar").style.width=pct+"%";
   const st=streak(); $("ovSub").textContent=M+" / "+T+" cards mastered · "+st+" day"+(st===1?"":"s")+" streak";
   const dn=dueCards().length, db=$("dueBtn");
-  if(db){ db.hidden=dn===0; db.textContent="\u2605 \u5230\u671f\u590d\u4e60 \u00b7 Review due \u00b7 "+dn; }
+  if(db){
+    const t0=srsToday(); let nxt=Infinity, nxtN=0;
+    Object.keys(store.srs).forEach(k=>{ const d=store.srs[k].d; if(d>t0){ if(d<nxt){ nxt=d; nxtN=1; } else if(d===nxt){ nxtN++; } } });
+    if(dn>0){ db.hidden=false; db.disabled=false; db.classList.remove("dueFuture"); db.textContent="\u2605 \u5230\u671f\u590d\u4e60 \u00b7 Review due \u00b7 "+dn; }
+    else if(nxt<Infinity){ const dd=nxt-t0; db.hidden=false; db.disabled=true; db.classList.add("dueFuture"); db.textContent="\u2713 All caught up \u00b7 next review "+(dd===1?"tomorrow":"in "+dd+" days")+" \u00b7 "+nxtN+" card"+(nxtN===1?"":"s"); }
+    else { db.hidden=true; }
+  }
   const list=$("list"); list.innerHTML="";
   LESSONS.forEach(L=>{
     const t=lessonTotals(L), p=t.t?Math.round(t.m/t.t*100):0;
@@ -2709,6 +2716,6 @@ renderHome();
   <div class="zoomChar" id="zoomChar"></div>
   <div class="zoomHint">tap anywhere to close · <button class="zoomStroke" id="zoomStrokeBtn">✍ practice strokes</button></div>
 </div>
-<div class="appFoot" id="appFoot">build v9 · 2026-06-10</div>
+<div class="appFoot" id="appFoot">build v10 · 2026-06-10</div>
 </body>
 </html>
